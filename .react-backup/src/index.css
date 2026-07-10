@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --animate-blob: blob 10s infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-fade-in-up: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-dash: dash 35s linear infinite;
+
+  @keyframes blob {
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+    33% {
+      transform: translate(40px, -60px) scale(1.15);
+    }
+    66% {
+      transform: translate(-30px, 30px) scale(0.9);
+    }
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+  }
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-12px) rotate(2deg);
+    }
+  }
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes dash {
+    from {
+      stroke-dashoffset: 0;
+    }
+    to {
+      stroke-dashoffset: -1000;
+    }
+  }
+}
+
+/* Helper animation delays */
+.animation-delay-100 {
+  animation-delay: 100ms;
+}
+.animation-delay-200 {
+  animation-delay: 200ms;
+}
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+.animation-delay-400 {
+  animation-delay: 400ms;
+}
+.animation-delay-2000 {
+  animation-delay: 2000ms;
+}
+.animation-delay-4000 {
+  animation-delay: 4000ms;
+}
