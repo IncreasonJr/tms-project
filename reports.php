@@ -166,62 +166,149 @@ require_once 'includes/header.php';
     </div>
 </div>
 
-<!-- Summary Statistics Cards Grid -->
-<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); margin-bottom: 2rem;">
-    <!-- Stat 1: Total Trips -->
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.04)); border-color: rgba(99, 102, 241, 0.2);">
-        <div class="stat-icon-container" style="background-color: rgba(99, 102, 241, 0.15); color: #818cf8;">
-            <i data-lucide="navigation"></i>
+<!-- Premium Summary Metrics Grid -->
+<?php
+$completion_rate = $total_trips > 0 ? round(($completed_trips / $total_trips) * 100) : 0;
+$cancellation_rate = $total_trips > 0 ? round(($cancelled_trips / $total_trips) * 100) : 0;
+$in_progress = $total_trips - $completed_trips - $cancelled_trips;
+?>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem;">
+
+    <!-- Card 1: Total Bookings (Indigo) -->
+    <div style="
+        position: relative; overflow: hidden;
+        background: linear-gradient(135deg, rgba(99,102,241,0.18) 0%, rgba(99,102,241,0.06) 100%);
+        border: 1px solid rgba(99,102,241,0.3);
+        border-radius: 20px; padding: 1.75rem;
+        backdrop-filter: blur(20px);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        cursor: default;
+    " onmouseenter="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 40px rgba(99,102,241,0.25)'; this.style.borderColor='rgba(99,102,241,0.5)'"
+       onmouseleave="this.style.transform=''; this.style.boxShadow=''; this.style.borderColor='rgba(99,102,241,0.3)'">
+        <!-- Top row: icon + label -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+            <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #a5b4fc;">Total Bookings</span>
+            <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.3); display: flex; align-items: center; justify-content: center; color: #818cf8;">
+                <i data-lucide="navigation" style="width: 18px; height: 18px;"></i>
+            </div>
         </div>
-        <div class="stat-details">
-            <span class="stat-value" style="color: #818cf8;"><?php echo number_format($total_trips); ?></span>
-            <span class="stat-label">Total Bookings</span>
+        <!-- Big number -->
+        <div style="font-size: 3rem; font-weight: 900; color: #818cf8; line-height: 1; letter-spacing: -0.04em; margin-bottom: 0.75rem;">
+            <?php echo number_format($total_trips); ?>
         </div>
+        <!-- Sub-label -->
+        <div style="font-size: 0.75rem; color: rgba(165,180,252,0.7);">All dispatched routes</div>
+        <!-- Glow blob -->
+        <div style="position: absolute; bottom: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; background: rgba(99,102,241,0.12); filter: blur(20px);"></div>
     </div>
 
-    <!-- Stat 2: Completed Trips -->
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.04)); border-color: rgba(16, 185, 129, 0.2);">
-        <div class="stat-icon-container" style="background-color: rgba(16, 185, 129, 0.15); color: #34d399;">
-            <i data-lucide="check-circle"></i>
+    <!-- Card 2: Completed Deliveries (Emerald) -->
+    <div style="
+        position: relative; overflow: hidden;
+        background: linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(16,185,129,0.06) 100%);
+        border: 1px solid rgba(16,185,129,0.3);
+        border-radius: 20px; padding: 1.75rem;
+        backdrop-filter: blur(20px);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        cursor: default;
+    " onmouseenter="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 40px rgba(16,185,129,0.25)'; this.style.borderColor='rgba(16,185,129,0.5)'"
+       onmouseleave="this.style.transform=''; this.style.boxShadow=''; this.style.borderColor='rgba(16,185,129,0.3)'">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+            <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #6ee7b7;">Completed</span>
+            <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.3); display: flex; align-items: center; justify-content: center; color: #34d399;">
+                <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
+            </div>
         </div>
-        <div class="stat-details">
-            <span class="stat-value" style="color: #34d399;"><?php echo number_format($completed_trips); ?></span>
-            <span class="stat-label">Completed Deliveries</span>
+        <div style="font-size: 3rem; font-weight: 900; color: #34d399; line-height: 1; letter-spacing: -0.04em; margin-bottom: 0.75rem;">
+            <?php echo number_format($completed_trips); ?>
         </div>
+        <!-- Progress bar -->
+        <div style="margin-bottom: 0.5rem;">
+            <div style="height: 4px; background: rgba(16,185,129,0.15); border-radius: 2px; overflow: hidden;">
+                <div style="height: 100%; width: <?php echo $completion_rate; ?>%; background: linear-gradient(90deg, #34d399, #10b981); border-radius: 2px; transition: width 1s ease;"></div>
+            </div>
+        </div>
+        <div style="font-size: 0.75rem; color: rgba(110,231,183,0.7);"><?php echo $completion_rate; ?>% delivery success rate</div>
+        <div style="position: absolute; bottom: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; background: rgba(16,185,129,0.12); filter: blur(20px);"></div>
     </div>
 
-    <!-- Stat 3: Cancelled Trips -->
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.04)); border-color: rgba(239, 68, 68, 0.2);">
-        <div class="stat-icon-container" style="background-color: rgba(239, 68, 68, 0.15); color: #f87171;">
-            <i data-lucide="x-circle"></i>
+    <!-- Card 3: Cancelled (Red) -->
+    <div style="
+        position: relative; overflow: hidden;
+        background: linear-gradient(135deg, rgba(239,68,68,0.15) 0%, rgba(239,68,68,0.05) 100%);
+        border: 1px solid rgba(239,68,68,0.25);
+        border-radius: 20px; padding: 1.75rem;
+        backdrop-filter: blur(20px);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        cursor: default;
+    " onmouseenter="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 40px rgba(239,68,68,0.2)'; this.style.borderColor='rgba(239,68,68,0.45)'"
+       onmouseleave="this.style.transform=''; this.style.boxShadow=''; this.style.borderColor='rgba(239,68,68,0.25)'">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+            <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #fca5a5;">Cancelled Trips</span>
+            <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.25); display: flex; align-items: center; justify-content: center; color: #f87171;">
+                <i data-lucide="x-circle" style="width: 18px; height: 18px;"></i>
+            </div>
         </div>
-        <div class="stat-details">
-            <span class="stat-value" style="color: #f87171;"><?php echo number_format($cancelled_trips); ?></span>
-            <span class="stat-label">Cancelled Trips</span>
+        <div style="font-size: 3rem; font-weight: 900; color: #f87171; line-height: 1; letter-spacing: -0.04em; margin-bottom: 0.75rem;">
+            <?php echo number_format($cancelled_trips); ?>
         </div>
+        <div style="margin-bottom: 0.5rem;">
+            <div style="height: 4px; background: rgba(239,68,68,0.1); border-radius: 2px; overflow: hidden;">
+                <div style="height: 100%; width: <?php echo $cancellation_rate; ?>%; background: linear-gradient(90deg, #f87171, #ef4444); border-radius: 2px;"></div>
+            </div>
+        </div>
+        <div style="font-size: 0.75rem; color: rgba(252,165,165,0.7);"><?php echo $cancellation_rate; ?>% cancellation rate</div>
+        <div style="position: absolute; bottom: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; background: rgba(239,68,68,0.1); filter: blur(20px);"></div>
     </div>
 
-    <!-- Stat 4: Vehicles -->
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.04)); border-color: rgba(59, 130, 246, 0.2);">
-        <div class="stat-icon-container" style="background-color: rgba(59, 130, 246, 0.15); color: #60a5fa;">
-            <i data-lucide="truck"></i>
+    <!-- Card 4: Total Vehicles (Blue) -->
+    <div style="
+        position: relative; overflow: hidden;
+        background: linear-gradient(135deg, rgba(59,130,246,0.18) 0%, rgba(59,130,246,0.06) 100%);
+        border: 1px solid rgba(59,130,246,0.3);
+        border-radius: 20px; padding: 1.75rem;
+        backdrop-filter: blur(20px);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        cursor: default;
+    " onmouseenter="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 40px rgba(59,130,246,0.25)'; this.style.borderColor='rgba(59,130,246,0.5)'"
+       onmouseleave="this.style.transform=''; this.style.boxShadow=''; this.style.borderColor='rgba(59,130,246,0.3)'">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+            <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #93c5fd;">Fleet Vehicles</span>
+            <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.3); display: flex; align-items: center; justify-content: center; color: #60a5fa;">
+                <i data-lucide="truck" style="width: 18px; height: 18px;"></i>
+            </div>
         </div>
-        <div class="stat-details">
-            <span class="stat-value" style="color: #60a5fa;"><?php echo number_format($total_vehicles); ?></span>
-            <span class="stat-label">Total Vehicles</span>
+        <div style="font-size: 3rem; font-weight: 900; color: #60a5fa; line-height: 1; letter-spacing: -0.04em; margin-bottom: 0.75rem;">
+            <?php echo number_format($total_vehicles); ?>
         </div>
+        <div style="font-size: 0.75rem; color: rgba(147,197,253,0.7);">Registered in fleet registry</div>
+        <div style="position: absolute; bottom: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; background: rgba(59,130,246,0.12); filter: blur(20px);"></div>
     </div>
 
-    <!-- Stat 5: Drivers -->
-    <div class="stat-card" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(234, 179, 8, 0.04)); border-color: rgba(234, 179, 8, 0.2);">
-        <div class="stat-icon-container" style="background-color: rgba(234, 179, 8, 0.15); color: #fbbf24;">
-            <i data-lucide="users"></i>
+    <!-- Card 5: Active Drivers (Amber) -->
+    <div style="
+        position: relative; overflow: hidden;
+        background: linear-gradient(135deg, rgba(234,179,8,0.18) 0%, rgba(234,179,8,0.06) 100%);
+        border: 1px solid rgba(234,179,8,0.3);
+        border-radius: 20px; padding: 1.75rem;
+        backdrop-filter: blur(20px);
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        cursor: default;
+    " onmouseenter="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 40px rgba(234,179,8,0.2)'; this.style.borderColor='rgba(234,179,8,0.5)'"
+       onmouseleave="this.style.transform=''; this.style.boxShadow=''; this.style.borderColor='rgba(234,179,8,0.3)'">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+            <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #fde68a;">Active Drivers</span>
+            <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(234,179,8,0.2); border: 1px solid rgba(234,179,8,0.3); display: flex; align-items: center; justify-content: center; color: #fbbf24;">
+                <i data-lucide="users" style="width: 18px; height: 18px;"></i>
+            </div>
         </div>
-        <div class="stat-details">
-            <span class="stat-value" style="color: #fbbf24;"><?php echo number_format($total_drivers); ?></span>
-            <span class="stat-label">Active Drivers</span>
+        <div style="font-size: 3rem; font-weight: 900; color: #fbbf24; line-height: 1; letter-spacing: -0.04em; margin-bottom: 0.75rem;">
+            <?php echo number_format($total_drivers); ?>
         </div>
+        <div style="font-size: 0.75rem; color: rgba(253,230,138,0.7);">Licensed &amp; registered</div>
+        <div style="position: absolute; bottom: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; background: rgba(234,179,8,0.1); filter: blur(20px);"></div>
     </div>
+
 </div>
 
 <!-- Filters Panel -->
