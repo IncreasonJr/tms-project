@@ -1203,3 +1203,189 @@ body {
     background-color: #047857;
 }
 
+/* --------------------------------------------------------
+   Glassmorphic Landing Page & Animations
+   -------------------------------------------------------- */
+:root {
+    --lp-primary: #1a1a2e;
+    --lp-secondary: #16213e;
+    --lp-accent: #0f3460;
+    --lp-highlight: #e94560;
+    --lp-glass: rgba(255, 255, 255, 0.05);
+    --lp-glass-border: rgba(255, 255, 255, 0.1);
+}
+
+.glass-container {
+    background: var(--lp-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--lp-glass-border);
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    transition: var(--transition);
+}
+
+.glass-container:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    transform: translateY(-2px);
+}
+
+/* Animation Utilities */
+.anim-fade-in {
+    opacity: 0;
+    animation: htmlFadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.anim-slide-up {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: htmlSlideUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.delay-1 { animation-delay: 0.2s; }
+.delay-2 { animation-delay: 0.4s; }
+.delay-3 { animation-delay: 0.6s; }
+
+@keyframes htmlFadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes htmlSlideUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Scroll-triggered reveal states */
+.reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Landing Page Grid & Elements */
+.landing-hero {
+    background-image: linear-gradient(185deg, rgba(26, 26, 46, 0.95) 0%, rgba(22, 33, 62, 0.8) 100%), url('../assets/images/hero-image.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.landing-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 3rem;
+    background: rgba(26, 26, 46, 0.35);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--lp-glass-border);
+}
+
+.landing-nav .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.landing-main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem 1.5rem;
+    text-align: center;
+}
+
+.landing-grid {
+    display: grid;
+    grid-template-cols: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    width: 100%;
+    margin-top: 4rem;
+    padding: 0 1.5rem;
+}
+
+.feature-card {
+    padding: 2.5rem 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.feature-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: rgba(233, 69, 96, 0.1);
+    color: var(--lp-highlight);
+    border: 1px solid rgba(233, 69, 96, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+}
+
+.feature-icon-wrapper i {
+    width: 28px;
+    height: 28px;
+}
+
+.feature-card h3 {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.feature-card p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.cta-btn-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+.btn-highlight {
+    background-color: var(--lp-highlight);
+    color: white;
+}
+
+.btn-highlight:hover {
+    background-color: #f0546c;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(233, 69, 96, 0.4);
+}
+
+.landing-footer {
+    padding: 2rem;
+    text-align: center;
+    border-top: 1px solid var(--lp-glass-border);
+    background: rgba(26, 26, 46, 0.6);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+

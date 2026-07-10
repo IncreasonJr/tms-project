@@ -11,6 +11,12 @@ require_once 'includes/functions.php';
 // Check authorization
 check_login();
 
+// Enforce admin-only access check
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+    header("Location: index.php");
+    exit();
+}
+
 // 2. Default Filter Inputs
 $from_date = isset($_GET['from_date']) ? sanitize_input($_GET['from_date']) : '';
 $to_date = isset($_GET['to_date']) ? sanitize_input($_GET['to_date']) : '';

@@ -11,6 +11,12 @@ require_once 'includes/functions.php';
 // Check authorization
 check_login();
 
+// Enforce admin-only access check
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+    header("Location: index.php");
+    exit();
+}
+
 // 2. Fetch statistics and updates
 $total_vehicles = 0;
 $total_drivers = 0;

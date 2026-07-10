@@ -13,6 +13,12 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Enforce admin-only access check
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+    header("Location: index.php");
+    exit();
+}
+
 // 3. Get the driver ID from the URL parameter (GET method)
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 

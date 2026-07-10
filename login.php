@@ -8,8 +8,16 @@
 require_once __DIR__ . '/includes/config.php';
 
 // Redirect if already logged in
-if (isset($_SESSION['user_id'])) {
-    header("Location: dashboard.php");
+if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
+    if ($_SESSION['user_role'] === 'admin') {
+        header("Location: dashboard.php");
+    } elseif ($_SESSION['user_role'] === 'driver') {
+        header("Location: driver_dashboard.php");
+    } elseif ($_SESSION['user_role'] === 'customer') {
+        header("Location: customer_dashboard.php");
+    } else {
+        header("Location: index.php");
+    }
     exit();
 }
 
@@ -51,7 +59,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $_SESSION['user_role'] = $row['role'];
                                 $_SESSION['last_activity'] = time(); // Initialize activity timestamp
                                 
-                                header("Location: dashboard.php?msg=Welcome+back,+" . urlencode($row['fullname']));
+                                // Dynamic redirection based on role
+                                if ($row['role'] === 'admin') {
+                                    header("Location: dashboard.php?msg=Welcome+back,+" . urlencode($row['fullname']));
+                                } elseif ($row['role'] === 'driver') {
+                                    header("Location: driver_dashboard.php?msg=Welcome+back,+" . urlencode($row['fullname']));
+                                } elseif ($row['role'] === 'customer') {
+                                    header("Location: customer_dashboard.php?msg=Welcome+back,+" . urlencode($row['fullname']));
+                                } else {
+                                    header("Location: index.php");
+                                }
                                 exit();
                             }
                         }
@@ -62,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error_msg = 'Invalid email or password.';
             } else {
                 // Simulation Mode Local check
-                if (($email === 'dispatcher@fleet.com' || $email === 'admin@fleet.com' || $email === 'yard@fleet.com') && $password === 'fleet123') {
+                if (($email === 'dispatcher@fleet.com' || $email === 'admin@fleet.com' || $email === 'yard@fleet.com' || $email === 'customer@fleet.com') && $password === 'fleet123') {
                     session_regenerate_id(true);
                     $_SESSION['last_activity'] = time();
                     
@@ -70,28 +87,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['user_id'] = 1;
                         $_SESSION['username'] = 'System Administrator';
                         $_SESSION['user_name'] = 'System Administrator';
-                        $_SESSION['user_role'] = 'super_admin';
+                        $_SESSION['user_role'] = 'admin';
+                        header("Location: dashboard.php?msg=Welcome+to+simulation+mode!");
                     } else if ($email === 'dispatcher@fleet.com') {
                         $_SESSION['user_id'] = 2;
                         $_SESSION['username'] = 'Operations Dispatcher';
                         $_SESSION['user_name'] = 'Operations Dispatcher';
-                        $_SESSION['user_role'] = 'manager';
-                    } else {
+                        $_SESSION['user_role'] = 'admin';
+                        header("Location: dashboard.php?msg=Welcome+to+simulation+mode!");
+                    } else if ($email === 'yard@fleet.com') {
                         $_SESSION['user_id'] = 3;
-                        $_SESSION['username'] = 'Yard Officer';
-                        $_SESSION['user_name'] = 'Yard Officer';
-                        $_SESSION['user_role'] = 'staff';
+                        $_SESSION['username'] = 'Yard Officer / Kwame';
+                        $_SESSION['user_name'] = 'Yard Officer / Kwame';
+                        $_SESSION['user_role'] = 'driver';
+                        header("Location: driver_dashboard.php?msg=Welcome+to+simulation+mode!");
+                    } else if ($email === 'customer@fleet.com') {
+                        $_SESSION['user_id'] = 4;
+                        $_SESSION['username'] = 'Acme Corp Customer';
+                        $_SESSION['user_name'] = 'Acme Corp Customer';
+                        $_SESSION['user_role'] = 'customer';
+                        header("Location: customer_dashboard.php?msg=Welcome+to+simulation+mode!");
                     }
-                    header("Location: dashboard.php?msg=Welcome+to+simulation+mode!");
                     exit();
                 } elseif ($email === 'admin@tms.com' && $password === 'admin123') {
-                    // Support backend-core's default simulation login as well
+                    // Support backend-core's default simulation login
                     session_regenerate_id(true);
                     $_SESSION['last_activity'] = time();
                     $_SESSION['user_id'] = 1;
                     $_SESSION['username'] = 'Administrator';
                     $_SESSION['user_name'] = 'Administrator';
-                    $_SESSION['user_role'] = 'super_admin';
+                    $_SESSION['user_role'] = 'admin';
                     header("Location: dashboard.php?msg=Welcome+to+simulation+mode!");
                     exit();
                 } else {

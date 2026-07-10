@@ -8,8 +8,14 @@
 require_once 'includes/config.php';
 require_once 'includes/functions.php';
 
-// Check authorization (excludes login/track from redirect)
+// Check authorization
 check_login();
+
+// Enforce admin-only access check
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+    header("Location: index.php");
+    exit();
+}
 
 // 2. Fetch drivers from database or fallback to mock simulation list
 $drivers = [];

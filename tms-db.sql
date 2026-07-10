@@ -19,7 +19,7 @@ CREATE TABLE admins (
     fullname VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    role ENUM('super_admin', 'manager', 'staff') NOT NULL DEFAULT 'staff',
+    role ENUM('admin', 'driver', 'customer') NOT NULL DEFAULT 'customer',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -41,7 +41,7 @@ CREATE TABLE vehicles (
 -- --------------------------------------------------------
 CREATE TABLE drivers (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    fullname VARCHAR(100) NOT NULL,
+    full_name VARCHAR(100) NOT NULL,
     license_number VARCHAR(50) NOT NULL UNIQUE,
     phone VARCHAR(20) NOT NULL,
     email VARCHAR(100) NULL,
@@ -64,10 +64,12 @@ CREATE TABLE trips (
     driver_id INT NULL,
     status ENUM('pending', 'approved', 'in_transit', 'completed', 'cancelled') NOT NULL DEFAULT 'pending',
     created_by INT NOT NULL,
+    customer_id INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE SET NULL,
     FOREIGN KEY (driver_id) REFERENCES drivers(id) ON DELETE SET NULL,
-    FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE CASCADE
+    FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE CASCADE,
+    FOREIGN KEY (customer_id) REFERENCES admins(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -106,9 +108,10 @@ CREATE TABLE tracking_updates (
 -- Seed admins
 -- Password bcrypt hash for 'fleet123'
 INSERT INTO admins (id, fullname, email, password, role) VALUES
-(1, 'System Administrator', 'admin@fleet.com', '$2y$10$L19H/vD3eJgY.5dD3D2r4evqI4fT2r2HhXG4o1q2B3G4T2eE1dE2e', 'super_admin'),
-(2, 'Operations Dispatcher', 'dispatcher@fleet.com', '$2y$10$L19H/vD3eJgY.5dD3D2r4evqI4fT2r2HhXG4o1q2B3G4T2eE1dE2e', 'manager'),
-(3, 'Yard Officer', 'yard@fleet.com', '$2y$10$L19H/vD3eJgY.5dD3D2r4evqI4fT2r2HhXG4o1q2B3G4T2eE1dE2e', 'staff');
+(1, 'System Administrator', 'admin@fleet.com', '$2y$10$L19H/vD3eJgY.5dD3D2r4evqI4fT2r2HhXG4o1q2B3G4T2eE1dE2e', 'admin'),
+(2, 'Operations Dispatcher', 'dispatcher@fleet.com', '$2y$10$L19H/vD3eJgY.5dD3D2r4evqI4fT2r2HhXG4o1q2B3G4T2eE1dE2e', 'admin'),
+(3, 'Yard Officer / Driver Kwame', 'yard@fleet.com', '$2y$10$L19H/vD3eJgY.5dD3D2r4evqI4fT2r2HhXG4o1q2B3G4T2eE1dE2e', 'driver'),
+(4, 'Acme Corp Customer', 'customer@fleet.com', '$2y$10$L19H/vD3eJgY.5dD3D2r4evqI4fT2r2HhXG4o1q2B3G4T2eE1dE2e', 'customer');
 
 -- Seed vehicles (Ghana localized)
 INSERT INTO vehicles (id, vehicle_name, license_plate, model, capacity, status) VALUES
@@ -119,20 +122,20 @@ INSERT INTO vehicles (id, vehicle_name, license_plate, model, capacity, status) 
 (5, 'MAN TGX Carrier', 'GT-1102-23', 'TGX 26.440', 38000, 'out_of_service'),
 (6, 'Kia Bongo Delivery Truck', 'AS-9921-22', 'Bongo III', 4500, 'available');
 
--- Seed drivers (Ghana localized)
-INSERT INTO drivers (id, fullname, license_number, phone, email, address, status) VALUES
-(1, 'Kwame Mensah', 'DL-GH9021482', '+233 24 123 4567', 'kwame.mensah@fleet.com', 'H/No 12, Kanda High Street, Accra', 'available'),
+-- Seed drivers (Ghana localized, Kwame Mensah's email set to yard@fleet.com to associate it with driver login)
+INSERT INTO drivers (id, full_name, license_number, phone, email, address, status) VALUES
+(1, 'Kwame Mensah', 'DL-GH9021482', '+233 24 123 4567', 'yard@fleet.com', 'H/No 12, Kanda High Street, Accra', 'available'),
 (2, 'Kojo Boateng', 'DL-GH8410294', '+233 20 234 5678', 'kojo.boateng@fleet.com', 'Block G, Adum, Kumasi', 'on_trip'),
 (3, 'Kofi Hanson', 'DL-GH1029481', '+233 27 345 6789', 'kofi.hanson@fleet.com', 'Ashaley Botwe, Accra', 'available'),
 (4, 'Yaw Addo', 'DL-GH4520194', '+233 55 456 7890', 'yaw.addo@fleet.com', 'Zongo Lane, Koforidua', 'unavailable'),
 (5, 'Amma Osei', 'DL-GH1109283', '+233 24 567 8901', 'amma.osei@fleet.com', 'P.O. Box 45, Tamale', 'available'),
 (6, 'Abena Appiah', 'DL-GH9920194', '+233 26 678 9012', 'abena.appiah@fleet.com', 'New Takoradi, Takoradi', 'available');
 
--- Seed trips
-INSERT INTO trips (id, trip_code, trip_date, origin, destination, purpose, vehicle_id, driver_id, status, created_by) VALUES
-(1, 'TRP-987214', '2026-07-02', 'Accra, Greater Accra', 'Tamale, Northern', 'Industrial machinery delivery to northern terminal', 2, 2, 'approved', 2),
-(2, 'TRP-112045', '2026-06-28', 'Tema, Greater Accra', 'Kumasi, Ashanti', 'General harbor cargo transfer', 3, 3, 'completed', 2),
-(3, 'TRP-301149', '2026-07-05', 'Kumasi, Ashanti', 'Sunyani, Bono', 'Seed and agricultural supply transit', 6, 1, 'pending', 3);
+-- Seed trips (linked to customer_id = 4)
+INSERT INTO trips (id, trip_code, trip_date, origin, destination, purpose, vehicle_id, driver_id, status, created_by, customer_id) VALUES
+(1, 'TRP-987214', '2026-07-02', 'Accra, Greater Accra', 'Tamale, Northern', 'Industrial machinery delivery to northern terminal', 2, 2, 'approved', 2, 4),
+(2, 'TRP-112045', '2026-06-28', 'Tema, Greater Accra', 'Kumasi, Ashanti', 'General harbor cargo transfer', 3, 3, 'completed', 2, 4),
+(3, 'TRP-301149', '2026-07-05', 'Kumasi, Ashanti', 'Sunyani, Bono', 'Seed and agricultural supply transit', 6, 1, 'pending', 3, 4);
 
 -- Seed maintenance logs
 INSERT INTO maintenance (id, vehicle_id, maintenance_date, description, cost, next_due_date, status) VALUES

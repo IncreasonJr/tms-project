@@ -12,14 +12,14 @@ if ($current_page !== 'login.php' && $current_page !== 'index.php' && $current_p
 }
 
 $user_name = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : (isset($_SESSION['username']) ? $_SESSION['username'] : 'System Dispatcher');
-$user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'staff';
+$user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'customer';
 $role_badge = '';
-if ($user_role === 'super_admin') {
-    $role_badge = '<span class="role-badge super-admin">Super Admin</span>';
-} else if ($user_role === 'manager') {
-    $role_badge = '<span class="role-badge manager">Manager</span>';
+if ($user_role === 'admin') {
+    $role_badge = '<span class="role-badge super-admin">Admin</span>';
+} else if ($user_role === 'driver') {
+    $role_badge = '<span class="role-badge manager">Driver</span>';
 } else {
-    $role_badge = '<span class="role-badge staff">Staff</span>';
+    $role_badge = '<span class="role-badge staff">Customer</span>';
 }
 ?>
 <!DOCTYPE html>
@@ -28,6 +28,8 @@ if ($user_role === 'super_admin') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($page_title) ? $page_title . " - FLEET Control" : "FLEET Control - Transport Management System"; ?></title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -71,75 +73,113 @@ if ($user_role === 'super_admin') {
             <nav class="sidebar-nav">
                 <ul>
                     <?php if (isset($_SESSION['user_id'])): ?>
-                    <li class="<?php echo $current_page === 'dashboard.php' ? 'active' : ''; ?>">
-                        <a href="dashboard.php">
-                            <i data-lucide="layout-dashboard"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="<?php echo $current_page === 'vehicles.php' ? 'active' : ''; ?>">
-                        <a href="vehicles.php">
-                            <i data-lucide="truck"></i>
-                            <span>Vehicles</span>
-                        </a>
-                    </li>
-                    <li class="<?php echo $current_page === 'drivers.php' ? 'active' : ''; ?>">
-                        <a href="drivers.php">
-                            <i data-lucide="users"></i>
-                            <span>Drivers</span>
-                        </a>
-                    </li>
-                    <li class="<?php echo $current_page === 'trips.php' || $current_page === 'add_trip.php' || $current_page === 'edit_trip.php' ? 'active' : ''; ?>">
-                        <a href="trips.php">
-                            <i data-lucide="navigation"></i>
-                            <span>Trips & Dispatch</span>
-                        </a>
-                    </li>
-                    <li class="<?php echo $current_page === 'update_tracking.php' ? 'active' : ''; ?>">
-                        <a href="update_tracking.php">
-                            <i data-lucide="activity"></i>
-                            <span>Update Tracking</span>
-                        </a>
-                    </li>
-                    <li class="<?php echo $current_page === 'maintenance.php' ? 'active' : ''; ?>">
-                        <a href="maintenance.php">
-                            <i data-lucide="wrench"></i>
-                            <span>Maintenance</span>
-                        </a>
-                    </li>
-                    <li class="<?php echo $current_page === 'reports.php' ? 'active' : ''; ?>">
-                        <a href="reports.php">
-                            <i data-lucide="trending-up"></i>
-                            <span>Reports & Logs</span>
-                        </a>
-                    </li>
-                    <li class="<?php echo $current_page === 'track.php' ? 'active' : ''; ?>">
-                        <a href="track.php">
-                            <i data-lucide="search"></i>
-                            <span>Track Delivery</span>
-                        </a>
-                    </li>
-                    <li class="nav-divider"></li>
-                    <li>
-                        <a href="logout.php" class="logout-link">
-                            <i data-lucide="log-out"></i>
-                            <span>Sign Out</span>
-                        </a>
-                    </li>
+                        <?php if ($user_role === 'admin'): ?>
+                            <!-- Admin Navigation Links -->
+                            <li class="<?php echo $current_page === 'dashboard.php' ? 'active' : ''; ?>">
+                                <a href="dashboard.php">
+                                    <i data-lucide="layout-dashboard"></i>
+                                    <span>Dashboard</span>
+                                </a>
+                            </li>
+                            <li class="<?php echo $current_page === 'vehicles.php' ? 'active' : ''; ?>">
+                                <a href="vehicles.php">
+                                    <i data-lucide="truck"></i>
+                                    <span>Vehicles</span>
+                                </a>
+                            </li>
+                            <li class="<?php echo $current_page === 'drivers.php' ? 'active' : ''; ?>">
+                                <a href="drivers.php">
+                                    <i data-lucide="users"></i>
+                                    <span>Drivers</span>
+                                </a>
+                            </li>
+                            <li class="<?php echo $current_page === 'trips.php' || $current_page === 'add_trip.php' || $current_page === 'edit_trip.php' ? 'active' : ''; ?>">
+                                <a href="trips.php">
+                                    <i data-lucide="navigation"></i>
+                                    <span>Trips & Dispatch</span>
+                                </a>
+                            </li>
+                            <li class="<?php echo $current_page === 'update_tracking.php' ? 'active' : ''; ?>">
+                                <a href="update_tracking.php">
+                                    <i data-lucide="activity"></i>
+                                    <span>Update Tracking</span>
+                                </a>
+                            </li>
+                            <li class="<?php echo $current_page === 'maintenance.php' ? 'active' : ''; ?>">
+                                <a href="maintenance.php">
+                                    <i data-lucide="wrench"></i>
+                                    <span>Maintenance</span>
+                                </a>
+                            </li>
+                            <li class="<?php echo $current_page === 'reports.php' ? 'active' : ''; ?>">
+                                <a href="reports.php">
+                                    <i data-lucide="trending-up"></i>
+                                    <span>Reports & Logs</span>
+                                </a>
+                            </li>
+                            <li class="<?php echo $current_page === 'track.php' ? 'active' : ''; ?>">
+                                <a href="track.php">
+                                    <i data-lucide="search"></i>
+                                    <span>Track Delivery</span>
+                                </a>
+                            </li>
+                        <?php elseif ($user_role === 'driver'): ?>
+                            <!-- Driver Navigation Links -->
+                            <li class="<?php echo $current_page === 'driver_dashboard.php' ? 'active' : ''; ?>">
+                                <a href="driver_dashboard.php">
+                                    <i data-lucide="layout-dashboard"></i>
+                                    <span>Dashboard</span>
+                                </a>
+                            </li>
+                            <li class="<?php echo $current_page === 'trips.php' ? 'active' : ''; ?>">
+                                <a href="trips.php">
+                                    <i data-lucide="navigation"></i>
+                                    <span>My Trips</span>
+                                </a>
+                            </li>
+                            <li class="<?php echo $current_page === 'update_tracking.php' ? 'active' : ''; ?>">
+                                <a href="update_tracking.php">
+                                    <i data-lucide="activity"></i>
+                                    <span>Update Status</span>
+                                </a>
+                            </li>
+                        <?php elseif ($user_role === 'customer'): ?>
+                            <!-- Customer Navigation Links -->
+                            <li class="<?php echo $current_page === 'customer_dashboard.php' ? 'active' : ''; ?>">
+                                <a href="customer_dashboard.php">
+                                    <i data-lucide="package"></i>
+                                    <span>My Orders</span>
+                                </a>
+                            </li>
+                            <li class="<?php echo $current_page === 'track.php' ? 'active' : ''; ?>">
+                                <a href="track.php">
+                                    <i data-lucide="search"></i>
+                                    <span>Track Shipments</span>
+                                </a>
+                            </li>
+                        <?php endif; ?>
+                        
+                        <li class="nav-divider"></li>
+                        <li>
+                            <a href="logout.php" class="logout-link">
+                                <i data-lucide="log-out"></i>
+                                <span>Sign Out</span>
+                            </a>
+                        </li>
                     <?php else: ?>
-                    <li class="<?php echo $current_page === 'track.php' ? 'active' : ''; ?>">
-                        <a href="track.php">
-                            <i data-lucide="search"></i>
-                            <span>Track Delivery</span>
-                        </a>
-                    </li>
-                    <li class="nav-divider"></li>
-                    <li>
-                        <a href="login.php">
-                            <i data-lucide="log-in"></i>
-                            <span>Sign In</span>
-                        </a>
-                    </li>
+                        <li class="<?php echo $current_page === 'track.php' ? 'active' : ''; ?>">
+                            <a href="track.php">
+                                <i data-lucide="search"></i>
+                                <span>Track Delivery</span>
+                            </a>
+                        </li>
+                        <li class="nav-divider"></li>
+                        <li>
+                            <a href="login.php">
+                                <i data-lucide="log-in"></i>
+                                <span>Sign In</span>
+                            </a>
+                        </li>
                     <?php endif; ?>
                 </ul>
             </nav>

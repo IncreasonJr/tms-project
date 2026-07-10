@@ -11,24 +11,100 @@ require_once 'includes/functions.php';
 // Check authorization (excludes login/track from redirect)
 check_login();
 
-// 2. Fetch trips from database or fallback to mock simulation list
+// Restrict customer role access
+if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'customer') {
+    header("Location: customer_dashboard.php");
+    exit();
+}
+
+// 2. Resolve driver_id if user is a driver
+$driver_id = 0;
+if ($_SESSION['user_role'] === 'driver') {
+    $user_email = '';
+    if ($db_connected && $conn) {
+        $sql = "SELECT email FROM admins WHERE id = ? LIMIT 1";
+        if ($stmt = mysqli_prepare($conn, $sql)) {
+            mysqli_stmt_bind_param($stmt, "i", $_SESSION['user_id']);
+            if (mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+                if ($row = mysqli_fetch_assoc($result)) {
+                    $user_email = $row['email'];
+                }
+                mysqli_free_result($result);
+            }
+            mysqli_stmt_close($stmt);
+        }
+        
+        if ($user_email !== '') {
+            $sql = "SELECT id FROM drivers WHERE email = ? LIMIT 1";
+            if ($stmt = mysqli_prepare($conn, $sql)) {
+                mysqli_stmt_bind_param($stmt, "s", $user_email);
+                if (mysqli_stmt_execute($stmt)) {
+                    $result = mysqli_stmt_get_result($stmt);
+                    if ($row = mysqli_fetch_assoc($result)) {
+                        $driver_id = $row['id'];
+                    }
+                    mysqli_free_result($result);
+                }
+                mysqli_stmt_close($stmt);
+            }
+        }
+    } else {
+        // Simulation Kwame Mensah
+        if ($_SESSION['user_id'] == 3) {
+            $driver_id = 1;
+        }
+    }
+}
+
+// 3. Fetch trips from database or fallback to mock simulation list
 $trips = [];
 if ($db_connected && $conn) {
-    $query = "SELECT t.*, v.vehicle_name, v.license_plate, d.full_name AS driver_name, a.fullname AS creator_name 
-              FROM trips t
-              LEFT JOIN vehicles v ON t.vehicle_id = v.id
-              LEFT JOIN drivers d ON t.driver_id = d.id
-              LEFT JOIN admins a ON t.created_by = a.id
-              ORDER BY t.id DESC";
-    $result = mysqli_query($conn, $query);
-    if ($result) {
-        while ($row = mysqli_fetch_assoc($result)) {
-            $trips[] = $row;
+    if ($_SESSION['user_role'] === 'driver') {
+        $query = "SELECT t.*, v.vehicle_name, v.license_plate, d.full_name AS driver_name, a.fullname AS creator_name 
+                  FROM trips t
+                  LEFT JOIN vehicles v ON t.vehicle_id = v.id
+                  LEFT JOIN drivers d ON t.driver_id = d.id
+                  LEFT JOIN admins a ON t.created_by = a.id
+                  WHERE t.driver_id = ?
+                  ORDER BY t.id DESC";
+        if ($stmt = mysqli_prepare($conn, $query)) {
+            mysqli_stmt_bind_param($stmt, "i", $driver_id);
+            if (mysqli_stmt_execute($stmt)) {
+                $result = mysqli_stmt_get_result($stmt);
+                while ($row = mysqli_fetch_assoc($result)) {
+                    $trips[] = $row;
+                }
+                mysqli_free_result($result);
+            }
+            mysqli_stmt_close($stmt);
         }
-        mysqli_free_result($result);
+    } else {
+        $query = "SELECT t.*, v.vehicle_name, v.license_plate, d.full_name AS driver_name, a.fullname AS creator_name 
+                  FROM trips t
+                  LEFT JOIN vehicles v ON t.vehicle_id = v.id
+                  LEFT JOIN drivers d ON t.driver_id = d.id
+                  LEFT JOIN admins a ON t.created_by = a.id
+                  ORDER BY t.id DESC";
+        $result = mysqli_query($conn, $query);
+        if ($result) {
+            while ($row = mysqli_fetch_assoc($result)) {
+                $trips[] = $row;
+            }
+            mysqli_free_result($result);
+        }
     }
 } else {
-    $trips = get_all_trips();
+    if ($_SESSION['user_role'] === 'driver') {
+        $all_trips = get_all_trips();
+        foreach ($all_trips as $t) {
+            if (intval($t['driver_id']) === $driver_id) {
+                $trips[] = $t;
+            }
+        }
+    } else {
+        $trips = get_all_trips();
+    }
 }
 
 $page_title = "Trips";
@@ -42,10 +118,12 @@ require_once 'includes/header.php';
         <p style="font-size: 0.85rem; color: var(--text-secondary);">Monitor route status, scheduling, and carrier assignments</p>
     </div>
     <!-- Add a button at the top: "Schedule New Trip" -->
+    <?php if ($_SESSION['user_role'] === 'admin'): ?>
     <a href="add_trip.php" class="btn btn-primary">
         <i data-lucide="plus"></i>
         <span>Schedule New Trip</span>
     </a>
+    <?php endif; ?>
 </div>
 
 <!-- Main Table Card -->
@@ -126,6 +204,7 @@ require_once 'includes/header.php';
                                         Track
                                     </a>
                                     <!-- Edit button linking to edit_trip.php?id=[trip_id] -->
+                                    <?php if ($_SESSION['user_role'] === 'admin'): ?>
                                     <a href="edit_trip.php?id=<?php echo $trip['id']; ?>" class="btn btn-sm btn-warning" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; font-weight: 600; border-radius: 6px;">
                                         Edit
                                     </a>
@@ -137,6 +216,7 @@ require_once 'includes/header.php';
                                             Delete
                                         </button>
                                     </form>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>

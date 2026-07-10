@@ -13,6 +13,12 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Enforce admin-only access check
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+    header("Location: index.php");
+    exit();
+}
+
 // Check CSRF token validation on POST deletion request
 $csrf_token = isset($_POST['csrf_token']) ? $_POST['csrf_token'] : '';
 if (!validateCSRFToken($csrf_token)) {
