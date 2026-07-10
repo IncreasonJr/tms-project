@@ -41,7 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($email) || empty($password)) {
             $error_msg = 'Please enter both email and password.';
         } else {
-            if ($db_connected) {
+            if (!$db_connected) {
+                $error_msg = 'Database connection is offline. Authentication is currently unavailable.';
+            } else {
                 // Prepared statements for SQL Injection Protection
                 $sql = "SELECT id, fullname, email, password, role FROM admins WHERE email = ? LIMIT 1";
                 if ($stmt = mysqli_prepare($conn, $sql)) {
@@ -77,51 +79,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     mysqli_stmt_close($stmt);
                 }
                 $error_msg = 'Invalid email or password.';
-            } else {
-                // Simulation Mode Local check
-                if (($email === 'dispatcher@fleet.com' || $email === 'admin@fleet.com' || $email === 'yard@fleet.com' || $email === 'customer@fleet.com') && $password === 'fleet123') {
-                    session_regenerate_id(true);
-                    $_SESSION['last_activity'] = time();
-                    
-                    if ($email === 'admin@fleet.com') {
-                        $_SESSION['user_id'] = 1;
-                        $_SESSION['username'] = 'System Administrator';
-                        $_SESSION['user_name'] = 'System Administrator';
-                        $_SESSION['user_role'] = 'admin';
-                        header("Location: dashboard.php?msg=Welcome+to+simulation+mode!");
-                    } else if ($email === 'dispatcher@fleet.com') {
-                        $_SESSION['user_id'] = 2;
-                        $_SESSION['username'] = 'Operations Dispatcher';
-                        $_SESSION['user_name'] = 'Operations Dispatcher';
-                        $_SESSION['user_role'] = 'admin';
-                        header("Location: dashboard.php?msg=Welcome+to+simulation+mode!");
-                    } else if ($email === 'yard@fleet.com') {
-                        $_SESSION['user_id'] = 3;
-                        $_SESSION['username'] = 'Yard Officer / Kwame';
-                        $_SESSION['user_name'] = 'Yard Officer / Kwame';
-                        $_SESSION['user_role'] = 'driver';
-                        header("Location: driver_dashboard.php?msg=Welcome+to+simulation+mode!");
-                    } else if ($email === 'customer@fleet.com') {
-                        $_SESSION['user_id'] = 4;
-                        $_SESSION['username'] = 'Acme Corp Customer';
-                        $_SESSION['user_name'] = 'Acme Corp Customer';
-                        $_SESSION['user_role'] = 'customer';
-                        header("Location: customer_dashboard.php?msg=Welcome+to+simulation+mode!");
-                    }
-                    exit();
-                } elseif ($email === 'admin@tms.com' && $password === 'admin123') {
-                    // Support backend-core's default simulation login
-                    session_regenerate_id(true);
-                    $_SESSION['last_activity'] = time();
-                    $_SESSION['user_id'] = 1;
-                    $_SESSION['username'] = 'Administrator';
-                    $_SESSION['user_name'] = 'Administrator';
-                    $_SESSION['user_role'] = 'admin';
-                    header("Location: dashboard.php?msg=Welcome+to+simulation+mode!");
-                    exit();
-                } else {
-                    $error_msg = 'Invalid credentials. Try dispatcher@fleet.com / fleet123';
-                }
             }
         }
     }
