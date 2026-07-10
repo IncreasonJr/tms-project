@@ -4,8 +4,8 @@
  * Transport Management System (TMS)
  */
 
-// 1. Start the session to gain access to current session data
-session_start();
+// 1. Include the configuration file
+require_once __DIR__ . '/includes/config.php';
 
 // 2. Unset all session variables to clear the $_SESSION array
 $_SESSION = array();
@@ -28,6 +28,6 @@ if (ini_get("session.use_cookies")) {
 session_destroy();
 
 // 5. Redirect the user to login.php
-header("Location: login.php");
+header("Location: login.php?msg=You+have+been+signed+out.&type=info");
 exit();
 ?>

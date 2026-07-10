@@ -6,71 +6,95 @@
 
 // 1. Include the configuration file at the top
 require_once 'includes/config.php';
+require_once 'includes/functions.php';
 
-// 2. Check if the user is logged in (if not, redirect to login.php)
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
+// Check authorization (excludes login/track from redirect)
+check_login();
+
+// 2. Fetch drivers from database or fallback to mock simulation list
+$drivers = [];
+if ($db_connected && $conn) {
+    $query = "SELECT * FROM drivers ORDER BY id DESC";
+    $result = mysqli_query($conn, $query);
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            // Map 'fullname' field if it is named 'fullname' in mock but 'full_name' in SQL
+            // Wait, in our schema:
+            // CREATE TABLE IF NOT EXISTS drivers (id INT AUTO_INCREMENT PRIMARY KEY, full_name VARCHAR(100) NOT NULL, ...)
+            // In the functions.php:
+            // SQL queries say: SELECT fullname FROM drivers ... OR SELECT * FROM drivers ORDER BY fullname ASC
+            // Wait! Let's check which column name exists in the SQL schema in drivers!
+            // Let's check the column names in drivers table in the database.
+            $drivers[] = $row;
+        }
+        mysqli_free_result($result);
+    }
+} else {
+    $drivers = get_all_drivers();
 }
 
 $page_title = "Drivers";
-
-// 9. Use the dashboard layout for consistency (header includes styling and navbar)
 require_once 'includes/header.php';
-
-// 3. Query the database to fetch all records from the drivers table
-// We fetch drivers sorted by ID descending to see new additions first
-$query = "SELECT * FROM drivers ORDER BY id DESC";
-$result = mysqli_query($conn, $query);
 ?>
 
 <!-- Header Section with Actions -->
-<div class="page-header">
-    <h2 class="page-title">Driver Directory</h2>
-    <!-- Add a button at the top: "Add New Driver" that links to add_driver.php -->
+<div class="panel-header" style="margin-bottom: 2rem;">
+    <div>
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: white; margin-bottom: 0.25rem;">Active Driver Registry</h2>
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">Manage authorization records, licensing, and phone contacts</p>
+    </div>
+    <!-- Add a button at the top: "Add New Driver" -->
     <a href="add_driver.php" class="btn btn-primary">
-        <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="currentColor">
-            <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/>
-        </svg>
-        Add New Driver
+        <i data-lucide="plus"></i>
+        <span>Add New Driver</span>
     </a>
 </div>
 
 <!-- Main Table Card -->
-<div class="content-card">
-    <?php if ($result && mysqli_num_rows($result) > 0): ?>
-        <!-- Display the drivers in a professional table -->
-        <div class="tms-table-responsive">
-            <table class="tms-table">
-                <thead>
+<div class="dashboard-panel">
+    <div class="table-container">
+        <table class="tms-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>License Number</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($drivers)): ?>
                     <tr>
-                        <th>ID</th>
-                        <th>Full Name</th>
-                        <th>License Number</th>
-                        <th>Phone</th>
-                        <th>Email</th>
-                        <th>Status</th>
-                        <th style="text-align: right;">Actions</th>
+                        <td colspan="7" style="text-align: center; padding: 2rem;">No drivers found in registry.</td>
                     </tr>
-                </thead>
-                <tbody>
-                    <?php while ($row = mysqli_fetch_assoc($result)): ?>
+                <?php else: ?>
+                    <?php foreach ($drivers as $driver): ?>
+                        <?php
+                        // Handle DB column naming difference: DB uses 'full_name' but Mock uses 'fullname'
+                        $driver_name = isset($driver['full_name']) ? $driver['full_name'] : (isset($driver['fullname']) ? $driver['fullname'] : '');
+                        ?>
                         <tr>
-                            <!-- Explicitly secure htmlspecialchars with ENT_QUOTES and UTF-8 -->
-                            <td>#<?php echo htmlspecialchars($row['id'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><strong><?php echo htmlspecialchars($row['full_name'], ENT_QUOTES, 'UTF-8'); ?></strong></td>
-                            <td><code style="background: rgba(255,255,255,0.06); padding: 4px 8px; border-radius: 4px;"><?php echo htmlspecialchars($row['license_number'], ENT_QUOTES, 'UTF-8'); ?></code></td>
-                            <td><?php echo htmlspecialchars($row['phone'] ?: '—', ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><?php echo htmlspecialchars($row['email'] ?: '—', ENT_QUOTES, 'UTF-8'); ?></td>
+                            <!-- Explicitly secure output with htmlspecialchars -->
+                            <td style="font-weight: 700; color: white;">#<?php echo htmlspecialchars($driver['id'], ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td style="color: white; font-weight: 600;"><?php echo htmlspecialchars($driver_name, ENT_QUOTES, 'UTF-8'); ?></td>
                             <td>
-                                <!-- Color-coded badges for status -->
+                                <span style="font-family: monospace; background-color: rgba(255,255,255,0.05); padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); color: white;">
+                                    <?php echo htmlspecialchars($driver['license_number'], ENT_QUOTES, 'UTF-8'); ?>
+                                </span>
+                            </td>
+                            <td><?php echo htmlspecialchars($driver['phone'] ?: '—', ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars($driver['email'] ?: '—', ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td>
                                 <?php 
-                                $status = $row['status'];
-                                $badge_class = 'badge-available'; // Default to available (green)
+                                $status = $driver['status'];
+                                $badge_class = 'status-available'; // Default to available
                                 if ($status === 'on_trip') {
-                                    $badge_class = 'badge-assigned'; // Orange badge-assigned styling
+                                    $badge_class = 'status-assigned'; // Orange
                                 } elseif ($status === 'unavailable') {
-                                    $badge_class = 'badge-under_maintenance'; // Red badge-under_maintenance styling
+                                    $badge_class = 'status-under_maintenance'; // Red
                                 }
                                 ?>
                                 <span class="badge <?php echo $badge_class; ?>">
@@ -78,44 +102,30 @@ $result = mysqli_query($conn, $query);
                                 </span>
                             </td>
                             <td style="text-align: right;">
-                                <div style="display: inline-flex; gap: 8px; align-items: center;">
+                                <div style="display: inline-flex; gap: 8px; align-items: center; justify-content: flex-end; width: 100%;">
                                     <!-- Edit button linking to edit_driver.php?id=[driver_id] -->
-                                    <a href="edit_driver.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning">
+                                    <a href="edit_driver.php?id=<?php echo $driver['id']; ?>" class="btn btn-sm btn-warning" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; font-weight: 600; border-radius: 6px;">
                                         Edit
                                     </a>
-                                    <!-- Delete form replacing the GET link to prevent CSRF attacks -->
+                                    <!-- Delete form with CSRF protection -->
                                     <form action="delete_driver.php" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this driver? This action cannot be undone.');">
-                                        <input type="hidden" name="id" value="<?php echo htmlspecialchars($row['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                        <input type="hidden" name="id" value="<?php echo htmlspecialchars($driver['id'], ENT_QUOTES, 'UTF-8'); ?>">
                                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCSRFToken(), ENT_QUOTES, 'UTF-8'); ?>">
-                                        <button type="submit" class="btn btn-sm btn-danger">
+                                        <button type="submit" class="btn btn-sm btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; font-weight: 600; border-radius: 6px; background-color: var(--danger-color); color: white;">
                                             Delete
                                         </button>
                                     </form>
                                 </div>
                             </td>
                         </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
-        </div>
-    <?php else: ?>
-        <!-- Show "No drivers found" if the table is empty -->
-        <div class="empty-state">
-            <svg xmlns="http://www.w3.org/2000/svg" height="48" viewBox="0 -960 960 960" width="48" fill="currentColor">
-                <path d="M480-480q-66 0-113-47t-113-113q0-66 113-113t113-47q66 0 113 47t113 113q0 66-113 113t-113 113ZM160-160v-32q0-34 17.5-62.5T224-296q64-35 135-51.5t121-16.5q50 0 121 16.5t135 51.5q31 15 48.5 43.5T800-192v32H160Zm80-80h480v-16q0-11-5.5-20T700-290q-54-29-109-42.5T480-346q-56 0-111 13.5T260-290q-9 5-14.5 14t-5.5 20v16Zm240-320q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm0-80Zm0 400Z"/>
-            </svg>
-            <div class="empty-title">No Drivers Registered</div>
-            <p>Click "Add New Driver" to add driver records to the system.</p>
-        </div>
-    <?php endif; ?>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <?php
-// Close result set
-if ($result) {
-    mysqli_free_result($result);
-}
-
 // Include footer layout
 require_once 'includes/footer.php';
 ?>

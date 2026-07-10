@@ -1,270 +1,305 @@
 <?php
 /**
- * Reports Dashboard
+ * Reports & Logs Dashboard
  * Transport Management System (TMS)
  */
 
-// 1. Include the configuration file at the top
+// 1. Include config file
 require_once 'includes/config.php';
+require_once 'includes/functions.php';
 
-// 2. Check if the user is logged in (if not, redirect to login.php)
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
-}
+// Check authorization
+check_login();
 
-/**
- * Helper function to run count queries using prepared statements safely
- */
-function get_count($conn, $query, $types = "", $params = []) {
-    $count = 0;
+// 2. Default Filter Inputs
+$from_date = isset($_GET['from_date']) ? sanitize_input($_GET['from_date']) : '';
+$to_date = isset($_GET['to_date']) ? sanitize_input($_GET['to_date']) : '';
+$status_filter = isset($_GET['status']) ? sanitize_input($_GET['status']) : '';
+
+// 3. Summaries Aggregation
+$total_trips = 0;
+$completed_trips = 0;
+$cancelled_trips = 0;
+$total_vehicles = 0;
+$total_drivers = 0;
+
+$filtered_trips = [];
+
+if ($db_connected && $conn) {
+    // Summary aggregation queries (prepared or direct)
+    $res = mysqli_query($conn, "SELECT COUNT(*) as total FROM trips");
+    if ($res) { $row = mysqli_fetch_assoc($res); $total_trips = $row['total']; mysqli_free_result($res); }
+
+    $res = mysqli_query($conn, "SELECT COUNT(*) as total FROM trips WHERE status = 'completed'");
+    if ($res) { $row = mysqli_fetch_assoc($res); $completed_trips = $row['total']; mysqli_free_result($res); }
+
+    $res = mysqli_query($conn, "SELECT COUNT(*) as total FROM trips WHERE status = 'cancelled'");
+    if ($res) { $row = mysqli_fetch_assoc($res); $cancelled_trips = $row['total']; mysqli_free_result($res); }
+
+    $res = mysqli_query($conn, "SELECT COUNT(*) as total FROM vehicles");
+    if ($res) { $row = mysqli_fetch_assoc($res); $total_vehicles = $row['total']; mysqli_free_result($res); }
+
+    $res = mysqli_query($conn, "SELECT COUNT(*) as total FROM drivers");
+    if ($res) { $row = mysqli_fetch_assoc($res); $total_drivers = $row['total']; mysqli_free_result($res); }
+
+    // Dynamic prepared statement for filtered trips search
+    $query = "SELECT t.*, v.vehicle_name, d.full_name AS driver_name, a.fullname AS creator_name 
+              FROM trips t
+              LEFT JOIN vehicles v ON t.vehicle_id = v.id
+              LEFT JOIN drivers d ON t.driver_id = d.id
+              LEFT JOIN admins a ON t.created_by = a.id
+              WHERE 1=1";
+              
+    $params = [];
+    $types = "";
+    
+    if (!empty($from_date)) {
+        $query .= " AND t.trip_date >= ?";
+        $params[] = $from_date;
+        $types .= "s";
+    }
+    
+    if (!empty($to_date)) {
+        $query .= " AND t.trip_date <= ?";
+        $params[] = $to_date;
+        $types .= "s";
+    }
+    
+    if (!empty($status_filter)) {
+        $query .= " AND t.status = ?";
+        $params[] = $status_filter;
+        $types .= "s";
+    }
+    
+    $query .= " ORDER BY t.trip_date DESC, t.id DESC";
+    
     if ($stmt = mysqli_prepare($conn, $query)) {
         if (!empty($params)) {
             mysqli_stmt_bind_param($stmt, $types, ...$params);
         }
+        
         if (mysqli_stmt_execute($stmt)) {
             $result = mysqli_stmt_get_result($stmt);
-            if ($row = mysqli_fetch_assoc($result)) {
-                $count = intval($row['total']);
+            while ($row = mysqli_fetch_assoc($result)) {
+                $filtered_trips[] = $row;
             }
             mysqli_free_result($result);
         }
         mysqli_stmt_close($stmt);
     }
-    return $count;
-}
-
-// --- Section 1 & 3: Gather Statistics using prepared statements ---
-$total_trips = get_count($conn, "SELECT COUNT(*) AS total FROM trips");
-$completed_trips = get_count($conn, "SELECT COUNT(*) AS total FROM trips WHERE status = 'completed'");
-$cancelled_trips = get_count($conn, "SELECT COUNT(*) AS total FROM trips WHERE status = 'cancelled'");
-$total_vehicles = get_count($conn, "SELECT COUNT(*) AS total FROM vehicles");
-$total_drivers = get_count($conn, "SELECT COUNT(*) AS total FROM drivers");
-
-$today_trips = get_count($conn, "SELECT COUNT(*) AS total FROM trips WHERE trip_date = CURDATE()");
-$week_trips = get_count($conn, "SELECT COUNT(*) AS total FROM trips WHERE YEARWEEK(trip_date, 1) = YEARWEEK(CURDATE(), 1)");
-$month_trips = get_count($conn, "SELECT COUNT(*) AS total FROM trips WHERE MONTH(trip_date) = MONTH(CURDATE()) AND YEAR(trip_date) = YEAR(CURDATE())");
-
-// --- Section 2: Trip Filtering logic ---
-$from_date = isset($_GET['from_date']) ? trim($_GET['from_date']) : '';
-$to_date = isset($_GET['to_date']) ? trim($_GET['to_date']) : '';
-$status_filter = isset($_GET['status']) ? trim($_GET['status']) : 'all';
-
-// Build the filtering query
-$conditions = [];
-$types = '';
-$params = [];
-
-if (!empty($from_date)) {
-    $conditions[] = "t.trip_date >= ?";
-    $types .= 's';
-    $params[] = $from_date;
-}
-if (!empty($to_date)) {
-    $conditions[] = "t.trip_date <= ?";
-    $types .= 's';
-    $params[] = $to_date;
-}
-if (!empty($status_filter) && $status_filter !== 'all') {
-    $conditions[] = "t.status = ?";
-    $types .= 's';
-    $params[] = $status_filter;
-}
-
-$sql = "SELECT t.*, v.vehicle_name, d.full_name AS driver_name 
-        FROM trips t 
-        LEFT JOIN vehicles v ON t.vehicle_id = v.id 
-        LEFT JOIN drivers d ON t.driver_id = d.id";
-
-if (count($conditions) > 0) {
-    $sql .= " WHERE " . implode(" AND ", $conditions);
-}
-$sql .= " ORDER BY t.trip_date DESC, t.id DESC";
-
-// Execute prepared statement for filters
-$trips_result = null;
-if ($stmt = mysqli_prepare($conn, $sql)) {
-    if (count($params) > 0) {
-        mysqli_stmt_bind_param($stmt, $types, ...$params);
-    }
-    if (mysqli_stmt_execute($stmt)) {
-        $trips_result = mysqli_stmt_get_result($stmt);
+} else {
+    // Simulation Mode Summaries
+    $total_vehicles = isset($_SESSION['mock_vehicles']) ? count($_SESSION['mock_vehicles']) : 0;
+    $total_drivers = isset($_SESSION['mock_drivers']) ? count($_SESSION['mock_drivers']) : 0;
+    if (isset($_SESSION['mock_trips'])) {
+        $total_trips = count($_SESSION['mock_trips']);
+        foreach ($_SESSION['mock_trips'] as $t) {
+            if ($t['status'] === 'completed') $completed_trips++;
+            elseif ($t['status'] === 'cancelled') $cancelled_trips++;
+        }
+        
+        // Filter mock trips
+        foreach ($_SESSION['mock_trips'] as $trip) {
+            $match = true;
+            if (!empty($from_date) && strcmp($trip['trip_date'], $from_date) < 0) $match = false;
+            if (!empty($to_date) && strcmp($trip['trip_date'], $to_date) > 0) $match = false;
+            if (!empty($status_filter) && $trip['status'] !== $status_filter) $match = false;
+            
+            if ($match) {
+                $v_id = $trip['vehicle_id'];
+                $d_id = $trip['driver_id'];
+                $vehicle_name = '';
+                if ($v_id && isset($_SESSION['mock_vehicles'][$v_id])) {
+                    $vehicle_name = $_SESSION['mock_vehicles'][$v_id]['vehicle_name'];
+                }
+                $driver_name = '';
+                if ($d_id && isset($_SESSION['mock_drivers'][$d_id])) {
+                    $driver_name = $_SESSION['mock_drivers'][$d_id]['fullname'];
+                }
+                
+                $filtered_trips[] = [
+                    'id' => $trip['id'],
+                    'trip_code' => $trip['trip_code'],
+                    'trip_date' => $trip['trip_date'],
+                    'origin' => $trip['origin'],
+                    'destination' => $trip['destination'],
+                    'purpose' => $trip['purpose'],
+                    'status' => $trip['status'],
+                    'vehicle_name' => $vehicle_name,
+                    'driver_name' => $driver_name,
+                    'creator_name' => 'System Dispatcher'
+                ];
+            }
+        }
+        
+        // Sort mock results by date descending
+        usort($filtered_trips, function($a, $b) {
+            return strcmp($b['trip_date'], $a['trip_date']);
+        });
     }
 }
 
-$page_title = "Reports";
-
-// 4. Use the dashboard layout for consistency (header includes styling and navbar)
+$page_title = "Reports & Logs";
 require_once 'includes/header.php';
 ?>
 
-<!-- Header Section -->
-<div class="page-header">
-    <h2 class="page-title">Operational Reports</h2>
+<!-- Header -->
+<div class="panel-header" style="margin-bottom: 2rem;">
+    <div>
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: white; margin-bottom: 0.25rem;">System Reports & Analytics</h2>
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">Query historical logs, route metrics, and carrier performance</p>
+    </div>
 </div>
 
-<!-- Section 1: Summary Statistics Cards -->
-<section class="reports-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin-bottom: 32px;">
-    
-    <!-- Total Trips -->
-    <div class="stat-card" style="border-left: 4px solid var(--primary-color);">
-        <div class="stat-info">
-            <span class="stat-number" style="color: var(--text-primary);"><?php echo number_format($total_trips); ?></span>
-            <span class="stat-label">Total Trips</span>
+<!-- Summary Statistics Cards Grid -->
+<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 2rem;">
+    <!-- Stat 1: Total Trips -->
+    <div class="stat-card">
+        <div class="stat-icon-container" style="background-color: rgba(99, 102, 241, 0.1); color: #818cf8;">
+            <i data-lucide="navigation"></i>
+        </div>
+        <div class="stat-details">
+            <span class="stat-value"><?php echo number_format($total_trips); ?></span>
+            <span class="stat-label">Total Bookings</span>
         </div>
     </div>
 
-    <!-- Completed Trips -->
-    <div class="stat-card" style="border-left: 4px solid var(--success-color);">
-        <div class="stat-info">
-            <span class="stat-number" style="color: var(--success-color);"><?php echo number_format($completed_trips); ?></span>
-            <span class="stat-label">Completed Trips</span>
+    <!-- Stat 2: Completed Trips -->
+    <div class="stat-card">
+        <div class="stat-icon-container" style="background-color: rgba(16, 185, 129, 0.1); color: #34d399;">
+            <i data-lucide="check-circle"></i>
+        </div>
+        <div class="stat-details">
+            <span class="stat-value"><?php echo number_format($completed_trips); ?></span>
+            <span class="stat-label">Completed Deliveries</span>
         </div>
     </div>
 
-    <!-- Cancelled Trips -->
-    <div class="stat-card" style="border-left: 4px solid var(--danger-color);">
-        <div class="stat-info">
-            <span class="stat-number" style="color: var(--danger-color);"><?php echo number_format($cancelled_trips); ?></span>
+    <!-- Stat 3: Cancelled Trips -->
+    <div class="stat-card">
+        <div class="stat-icon-container" style="background-color: rgba(239, 68, 68, 0.1); color: #f87171;">
+            <i data-lucide="x-circle"></i>
+        </div>
+        <div class="stat-details">
+            <span class="stat-value"><?php echo number_format($cancelled_trips); ?></span>
             <span class="stat-label">Cancelled Trips</span>
         </div>
     </div>
 
-    <!-- Fleet Size -->
-    <div class="stat-card" style="border-left: 4px solid var(--info-color);">
-        <div class="stat-info">
-            <span class="stat-number" style="color: var(--info-color);"><?php echo number_format($total_vehicles); ?></span>
-            <span class="stat-label">Vehicles Active</span>
+    <!-- Stat 4: Vehicles -->
+    <div class="stat-card">
+        <div class="stat-icon-container" style="background-color: rgba(59, 130, 246, 0.1); color: #60a5fa;">
+            <i data-lucide="truck"></i>
+        </div>
+        <div class="stat-details">
+            <span class="stat-value"><?php echo number_format($total_vehicles); ?></span>
+            <span class="stat-label">Total Vehicles</span>
         </div>
     </div>
 
-    <!-- Active Drivers -->
-    <div class="stat-card" style="border-left: 4px solid #10b981;">
-        <div class="stat-info">
-            <span class="stat-number" style="color: #10b981;"><?php echo number_format($total_drivers); ?></span>
-            <span class="stat-label">Drivers Registered</span>
+    <!-- Stat 5: Drivers -->
+    <div class="stat-card">
+        <div class="stat-icon-container" style="background-color: rgba(234, 179, 8, 0.1); color: #fbbf24;">
+            <i data-lucide="users"></i>
         </div>
-    </div>
-
-</section>
-
-<!-- Section 3: Quick Stats (Operational Intervals) -->
-<div class="content-card" style="margin-bottom: 32px; padding: 24px;">
-    <h3 class="panel-title" style="margin-bottom: 16px;">Interval Analysis</h3>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-        <div style="background: rgba(255, 255, 255, 0.02); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
-            <div style="font-size: 0.8125rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Today's Trips</div>
-            <div style="font-size: 1.75rem; font-weight: 800; color: #a78bfa;"><?php echo number_format($today_trips); ?></div>
-        </div>
-        <div style="background: rgba(255, 255, 255, 0.02); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
-            <div style="font-size: 0.8125rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">This Week's Trips</div>
-            <div style="font-size: 1.75rem; font-weight: 800; color: #60a5fa;"><?php echo number_format($week_trips); ?></div>
-        </div>
-        <div style="background: rgba(255, 255, 255, 0.02); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
-            <div style="font-size: 0.8125rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">This Month's Trips</div>
-            <div style="font-size: 1.75rem; font-weight: 800; color: #fbbf24;"><?php echo number_format($month_trips); ?></div>
+        <div class="stat-details">
+            <span class="stat-value"><?php echo number_format($total_drivers); ?></span>
+            <span class="stat-label">Active Drivers</span>
         </div>
     </div>
 </div>
 
-<!-- Section 2: Trip History Table with Filter Form -->
-<div class="content-card">
-    <h3 class="panel-title" style="margin-bottom: 20px;">Trip Logs & Filters</h3>
+<!-- Filters Panel -->
+<div class="dashboard-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
+    <h3 style="font-size: 1.1rem; font-weight: 700; color: white; margin-bottom: 1.25rem;">Filter Trip History</h3>
     
-    <!-- Filter form -->
-    <form action="reports.php" method="GET" style="margin-bottom: 24px; background: rgba(15, 23, 42, 0.3); border: 1px solid var(--border-color); padding: 20px; border-radius: 12px;">
-        <div class="form-row" style="align-items: end;">
-            
+    <form action="reports.php" method="GET">
+        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
             <!-- From Date -->
-            <div class="form-group" style="margin-bottom: 0;">
+            <div class="form-group">
                 <label for="from_date" class="form-label">From Date</label>
-                <input 
-                    type="date" 
-                    id="from_date" 
-                    name="from_date" 
-                    class="form-control" 
-                    value="<?php echo htmlspecialchars($from_date, ENT_QUOTES, 'UTF-8'); ?>"
-                >
+                <input type="date" id="from_date" name="from_date" class="form-control" value="<?php echo htmlspecialchars($from_date, ENT_QUOTES, 'UTF-8'); ?>">
             </div>
 
             <!-- To Date -->
-            <div class="form-group" style="margin-bottom: 0;">
+            <div class="form-group">
                 <label for="to_date" class="form-label">To Date</label>
-                <input 
-                    type="date" 
-                    id="to_date" 
-                    name="to_date" 
-                    class="form-control" 
-                    value="<?php echo htmlspecialchars($to_date, ENT_QUOTES, 'UTF-8'); ?>"
-                >
+                <input type="date" id="to_date" name="to_date" class="form-control" value="<?php echo htmlspecialchars($to_date, ENT_QUOTES, 'UTF-8'); ?>">
             </div>
 
-            <!-- Status Dropdown -->
-            <div class="form-group" style="margin-bottom: 0;">
-                <label for="status" class="form-label">Trip Status</label>
+            <!-- Status Filter -->
+            <div class="form-group">
+                <label for="status" class="form-label">Filter Status</label>
                 <select id="status" name="status" class="form-control">
-                    <option value="all" <?php echo ($status_filter === 'all') ? 'selected' : ''; ?>>All Statuses</option>
-                    <option value="pending" <?php echo ($status_filter === 'pending') ? 'selected' : ''; ?>>Pending</option>
-                    <option value="approved" <?php echo ($status_filter === 'approved') ? 'selected' : ''; ?>>Approved</option>
+                    <option value="">-- All Statuses --</option>
+                    <option value="pending" <?php echo ($status_filter === 'pending') ? 'selected' : ''; ?>>Pending approval</option>
+                    <option value="approved" <?php echo ($status_filter === 'approved') ? 'selected' : ''; ?>>Approved / Staged</option>
                     <option value="in_transit" <?php echo ($status_filter === 'in_transit') ? 'selected' : ''; ?>>In Transit</option>
                     <option value="completed" <?php echo ($status_filter === 'completed') ? 'selected' : ''; ?>>Completed</option>
                     <option value="cancelled" <?php echo ($status_filter === 'cancelled') ? 'selected' : ''; ?>>Cancelled</option>
                 </select>
             </div>
+        </div>
 
-            <!-- Submit buttons -->
-            <div style="display: flex; gap: 8px;">
-                <button type="submit" class="btn btn-primary" style="height: 46px; padding: 0 24px;">
-                    Apply Filters
-                </button>
-                <a href="reports.php" class="btn btn-secondary" style="height: 46px; display: inline-flex; align-items: center; justify-content: center;">
-                    Reset
-                </a>
-            </div>
-
+        <div class="form-actions" style="margin-top: 1.25rem; justify-content: flex-start; gap: 10px;">
+            <button type="submit" class="btn btn-primary">
+                <i data-lucide="filter"></i>
+                <span>Apply Filters</span>
+            </button>
+            <a href="reports.php" class="btn btn-secondary">Reset</a>
         </div>
     </form>
+</div>
 
-    <!-- Results Table -->
-    <?php if ($trips_result && mysqli_num_rows($trips_result) > 0): ?>
-        <div class="tms-table-responsive">
-            <table class="tms-table">
-                <thead>
+<!-- Table Results Panel -->
+<div class="dashboard-panel">
+    <div class="panel-header" style="border-bottom: none; padding: 1.5rem 1.5rem 0.5rem 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: white;">Filter Results</h3>
+    </div>
+    <div class="table-container" style="padding: 0 1.5rem 1.5rem 1.5rem;">
+        <table class="tms-table">
+            <thead>
+                <tr>
+                    <th>Trip Code</th>
+                    <th>Trip Date</th>
+                    <th>Route (From → To)</th>
+                    <th>Assigned Vehicle</th>
+                    <th>Assigned Driver</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($filtered_trips)): ?>
                     <tr>
-                        <th>Trip Code</th>
-                        <th>Trip Date</th>
-                        <th>Route</th>
-                        <th>Vehicle Name</th>
-                        <th>Driver Name</th>
-                        <th>Status</th>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-secondary);">No trips match the specified filters.</td>
                     </tr>
-                </thead>
-                <tbody>
-                    <?php while ($row = mysqli_fetch_assoc($trips_result)): ?>
+                <?php else: ?>
+                    <?php foreach ($filtered_trips as $trip): ?>
                         <tr>
-                            <!-- 2. Use htmlspecialchars() when displaying data to prevent XSS attacks -->
-                            <td><strong style="color: #8b5cf6; font-family: monospace;"><?php echo htmlspecialchars($row['trip_code'], ENT_QUOTES, 'UTF-8'); ?></strong></td>
-                            <td><?php echo htmlspecialchars(date('M d, Y', strtotime($row['trip_date'])), ENT_QUOTES, 'UTF-8'); ?></td>
+                            <!-- Explicitly secure output with htmlspecialchars -->
+                            <td><strong style="color: #8b5cf6; font-family: monospace; font-size: 0.95rem;"><?php echo htmlspecialchars($trip['trip_code'], ENT_QUOTES, 'UTF-8'); ?></strong></td>
+                            <td><?php echo htmlspecialchars(date('M d, Y', strtotime($trip['trip_date'])), ENT_QUOTES, 'UTF-8'); ?></td>
                             <td>
-                                <span><?php echo htmlspecialchars($row['origin'], ENT_QUOTES, 'UTF-8'); ?></span>
-                                <span style="color: var(--text-secondary); margin: 0 8px;">&rarr;</span>
-                                <span><?php echo htmlspecialchars($row['destination'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span style="color: white; font-weight: 600;"><?php echo htmlspecialchars(explode(',', $trip['origin'])[0], ENT_QUOTES, 'UTF-8'); ?></span>
+                                    <i data-lucide="arrow-right" style="width: 12px; height: 12px; color: var(--text-muted);"></i>
+                                    <span style="color: white; font-weight: 600;"><?php echo htmlspecialchars(explode(',', $trip['destination'])[0], ENT_QUOTES, 'UTF-8'); ?></span>
+                                </div>
                             </td>
-                            <td><?php echo htmlspecialchars($row['vehicle_name'] ?: '—', ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><?php echo htmlspecialchars($row['driver_name'] ?: '—', ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars($trip['vehicle_name'] ?: '—', ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars($trip['driver_name'] ?: '—', ENT_QUOTES, 'UTF-8'); ?></td>
                             <td>
-                                <!-- Color-coded badge -->
                                 <?php 
-                                $status = $row['status'];
-                                $badge_class = 'badge-pending';
+                                $status = $trip['status'];
+                                $badge_class = 'status-pending'; // Default
                                 if ($status === 'approved') {
-                                    $badge_class = 'badge-approved';
+                                    $badge_class = 'status-approved';
                                 } elseif ($status === 'in_transit') {
-                                    $badge_class = 'badge-in_transit';
+                                    $badge_class = 'status-in_transit';
                                 } elseif ($status === 'completed') {
-                                    $badge_class = 'badge-completed';
+                                    $badge_class = 'status-completed';
                                 } elseif ($status === 'cancelled') {
-                                    $badge_class = 'badge-cancelled';
+                                    $badge_class = 'status-cancelled';
                                 }
                                 ?>
                                 <span class="badge <?php echo $badge_class; ?>">
@@ -272,30 +307,14 @@ require_once 'includes/header.php';
                                 </span>
                             </td>
                         </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
-        </div>
-    <?php else: ?>
-        <div class="empty-state">
-            <svg xmlns="http://www.w3.org/2000/svg" height="48" viewBox="0 -960 960 960" width="48" fill="currentColor">
-                <path d="M440-80v-160h80v160h-80Zm0-240v-160h80v160h-80Zm0-240v-160h80v160h-80ZM184-80l144-640h104v-80H314L160-80h24Zm452 0h24L646-800H528v80h104l144 640Z"/>
-            </svg>
-            <div class="empty-title">No Matching Trips Found</div>
-            <p>Adjust your dates or status selections and try again.</p>
-        </div>
-    <?php endif; ?>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <?php
-// Close result sets
-if ($trips_result) {
-    mysqli_free_result($trips_result);
-}
-if (isset($stmt)) {
-    mysqli_stmt_close($stmt);
-}
-
 // Include footer layout
 require_once 'includes/footer.php';
 ?>
