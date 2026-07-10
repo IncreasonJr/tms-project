@@ -105,7 +105,7 @@ require_once 'includes/header.php';
                                         Edit
                                     </a>
                                     <!-- Delete form with CSRF protection -->
-                                    <form action="delete_vehicle.php" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this vehicle? This action cannot be undone.');">
+                                    <form action="delete_vehicle.php" method="POST" style="display: inline;" onsubmit="return confirmDelete(this, 'Remove Vehicle', 'Are you sure you want to permanently remove this vehicle from the fleet registry? This action cannot be undone.');">
                                         <input type="hidden" name="id" value="<?php echo htmlspecialchars($vehicle['id'], ENT_QUOTES, 'UTF-8'); ?>">
                                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCSRFToken(), ENT_QUOTES, 'UTF-8'); ?>">
                                         <button type="submit" class="btn btn-sm btn-danger" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; font-weight: 600; border-radius: 6px; background-color: var(--danger-color); color: white;">

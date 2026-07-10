@@ -104,10 +104,10 @@ $token = generateCSRFToken();
 <body class="login-body">
     
     <div class="login-card">
-        <div class="login-logo">
-            <img src="assets/images/logo.png" alt="FLEET logo">
+        <div class="login-logo" style="margin-bottom: 1.5rem; display: flex; justify-content: center;">
+            <img src="assets/images/Logo1.png" alt="FLEET Logo" style="height: 60px; object-fit: contain;">
         </div>
-        
+
         <div class="login-header">
             <h2>FLEET</h2>
             <p>Transport Dispatch Control Tower</p>
@@ -121,10 +121,14 @@ $token = generateCSRFToken();
         <?php endif; ?>
 
         <!-- Defaults Hint -->
-        <div class="login-hint">
-            <strong>Default Dispatcher Credentials:</strong><br>
-            Email: <span style="text-decoration: underline;">dispatcher@fleet.com</span><br>
-            Password: <span style="text-decoration: underline;">fleet123</span>
+        <div class="login-hint" style="background-color: rgba(59, 130, 246, 0.05); border: 1px solid rgba(255,255,255,0.08); text-align: left; padding: 0.85rem; border-radius: 8px;">
+            <strong style="color: white; display: block; margin-bottom: 0.25rem; font-size: 0.8rem;">System Logins:</strong>
+            <span style="font-size: 0.75rem; color: var(--text-secondary);">
+                • Admin: <code style="color: #60a5fa; font-weight: 600;">admin@fleet.com</code><br>
+                • Driver: <code style="color: #34d399; font-weight: 600;">driver@fleet.com</code><br>
+                • Customer: <code style="color: #a78bfa; font-weight: 600;">customer@fleet.com</code><br>
+                • Passcode: <code style="color: white;">fleet123</code>
+            </span>
         </div>
 
         <form action="login.php" method="POST" class="login-form">
@@ -133,7 +137,7 @@ $token = generateCSRFToken();
 
             <div class="form-group">
                 <label for="email" class="form-label">Work Email</label>
-                <input type="email" id="email" name="email" required placeholder="you@fleet.com" class="form-control" value="dispatcher@fleet.com">
+                <input type="email" id="email" name="email" required placeholder="you@fleet.com" class="form-control" value="admin@fleet.com">
             </div>
 
             <div class="form-group">
@@ -141,7 +145,7 @@ $token = generateCSRFToken();
                 <input type="password" id="password" name="password" required placeholder="••••••••" class="form-control" value="fleet123">
             </div>
 
-            <button type="submit" class="btn btn-primary login-btn">
+            <button type="submit" class="btn btn-primary login-btn" style="width: 100%; justify-content: center; margin-top: 1rem; border-radius: 8px;">
                 <span>Access Console</span>
                 <i data-lucide="arrow-right"></i>
             </button>

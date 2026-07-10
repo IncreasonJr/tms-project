@@ -31,6 +31,32 @@
     --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
 }
 
+body.light-theme {
+    --bg-primary: #f1f5f9;
+    --bg-secondary: #ffffff;
+    --bg-header: #e2e8f0;
+    --bg-card: rgba(255, 255, 255, 0.65);
+    --bg-card-hover: rgba(255, 255, 255, 0.85);
+    
+    --border-color: rgba(15, 23, 42, 0.08);
+    --border-hover: rgba(15, 23, 42, 0.15);
+    
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    
+    --accent-blue: #2563eb;
+    --accent-blue-hover: #1d4ed8;
+    
+    --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    
+    --lp-primary: #f1f5f9;
+    --lp-secondary: #ffffff;
+    --lp-accent: #e2e8f0;
+    --lp-glass: rgba(255, 255, 255, 0.45);
+    --lp-glass-border: rgba(15, 23, 42, 0.08);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -1207,12 +1233,12 @@ body {
    Glassmorphic Landing Page & Animations
    -------------------------------------------------------- */
 :root {
-    --lp-primary: #1a1a2e;
-    --lp-secondary: #16213e;
-    --lp-accent: #0f3460;
-    --lp-highlight: #e94560;
-    --lp-glass: rgba(255, 255, 255, 0.05);
-    --lp-glass-border: rgba(255, 255, 255, 0.1);
+    --lp-primary: var(--bg-primary);
+    --lp-secondary: var(--bg-secondary);
+    --lp-accent: var(--accent-blue);
+    --lp-highlight: var(--accent-blue);
+    --lp-glass: var(--bg-card);
+    --lp-glass-border: var(--border-color);
 }
 
 .glass-container {
@@ -1221,7 +1247,7 @@ body {
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--lp-glass-border);
     border-radius: 20px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--shadow-lg);
     transition: var(--transition);
 }
 
@@ -1274,7 +1300,7 @@ body {
 
 /* Landing Page Grid & Elements */
 .landing-hero {
-    background-image: linear-gradient(185deg, rgba(26, 26, 46, 0.95) 0%, rgba(22, 33, 62, 0.8) 100%), url('../assets/images/hero-image.jpg');
+    background-image: linear-gradient(185deg, rgba(7, 11, 19, 0.95) 0%, rgba(14, 21, 37, 0.8) 100%), url('../assets/images/banner.png');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -1285,14 +1311,22 @@ body {
     justify-content: space-between;
 }
 
+body.light-theme .landing-hero {
+    background-image: linear-gradient(185deg, rgba(241, 245, 249, 0.95) 0%, rgba(255, 255, 255, 0.8) 100%), url('../assets/images/banner.png');
+}
+
 .landing-nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem 3rem;
-    background: rgba(26, 26, 46, 0.35);
+    background: rgba(14, 21, 37, 0.35);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--lp-glass-border);
+}
+
+body.light-theme .landing-nav {
+    background: rgba(255, 255, 255, 0.35);
 }
 
 .landing-nav .logo {
@@ -1386,6 +1420,174 @@ body {
     background: rgba(26, 26, 46, 0.6);
     font-size: 0.85rem;
     color: var(--text-muted);
+}
+
+/* --------------------------------------------------------
+   Additional Styles for Collapsible Sidebar, Modal, and Map
+   -------------------------------------------------------- */
+
+/* Collapsible Sidebar on Desktop */
+@media (min-width: 1025px) {
+    .app-sidebar.collapsed {
+        width: 80px;
+    }
+    .app-sidebar.collapsed .brand-text,
+    .app-sidebar.collapsed .sidebar-user,
+    .app-sidebar.collapsed .sidebar-nav span,
+    .app-sidebar.collapsed .nav-divider {
+        display: none !important;
+    }
+    .app-sidebar.collapsed .sidebar-brand {
+        justify-content: center;
+        padding: 0;
+    }
+    .app-sidebar.collapsed .sidebar-nav a {
+        justify-content: center;
+        padding: 0.85rem 0;
+    }
+    .app-sidebar.collapsed .sidebar-collapse-btn i {
+        transform: rotate(180deg);
+    }
+}
+
+/* Sidebar collapse toggle button styling */
+.sidebar-collapse-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    margin-left: auto;
+}
+.sidebar-collapse-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+body.light-theme .sidebar-collapse-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--text-primary);
+}
+
+/* Theme switch custom widgets */
+.theme-toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: var(--border-hover) !important;
+}
+body.light-theme .theme-toggle-btn {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+}
+body.light-theme .theme-toggle-btn:hover {
+    background-color: #f1f5f9 !important;
+}
+
+/* Glassmorphism updates to make them stand out premium */
+.dashboard-panel, .form-container, .filter-bar, .login-card, .modal-content {
+    background: var(--bg-card) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+/* Deletion dialog box modal overlays */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+.modal-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Visual map timeline tracks for private tracking page */
+.tracking-map-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    margin: 4rem 0;
+    padding: 0 1.5rem;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+.tracking-map-line {
+    position: absolute;
+    top: 30px;
+    left: 4rem;
+    right: 4rem;
+    height: 4px;
+    background-color: var(--border-color);
+    z-index: 1;
+}
+.tracking-map-line-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-blue), var(--status-available));
+    width: 0%;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tracking-map-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    min-width: 120px;
+}
+.tracking-map-node-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-color: var(--bg-secondary);
+    border: 3px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    transition: var(--transition);
+    box-shadow: var(--shadow-lg);
+}
+.tracking-map-node.active .tracking-map-node-icon {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+}
+.tracking-map-node.completed .tracking-map-node-icon {
+    border-color: var(--status-available);
+    color: var(--status-available);
+    background-color: rgba(16, 185, 129, 0.05);
+}
+.tracking-map-node-label {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-align: center;
+}
+.tracking-map-node.active .tracking-map-node-label {
+    color: white;
+}
+body.light-theme .tracking-map-node.active .tracking-map-node-label {
+    color: var(--text-primary);
+}
+.tracking-map-node.completed .tracking-map-node-label {
+    color: var(--status-available);
 }
 
 
