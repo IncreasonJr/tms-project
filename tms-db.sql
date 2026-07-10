@@ -108,10 +108,10 @@ CREATE TABLE tracking_updates (
 -- Seed admins
 -- Password bcrypt hash for 'fleet123'
 INSERT INTO admins (id, fullname, email, password, role) VALUES
-(1, 'System Administrator', 'admin@fleet.com', '$2y$10$L19H/vD3eJgY.5dD3D2r4evqI4fT2r2HhXG4o1q2B3G4T2eE1dE2e', 'admin'),
-(2, 'Operations Dispatcher', 'dispatcher@fleet.com', '$2y$10$L19H/vD3eJgY.5dD3D2r4evqI4fT2r2HhXG4o1q2B3G4T2eE1dE2e', 'admin'),
-(3, 'Yard Officer / Driver Kwame', 'yard@fleet.com', '$2y$10$L19H/vD3eJgY.5dD3D2r4evqI4fT2r2HhXG4o1q2B3G4T2eE1dE2e', 'driver'),
-(4, 'Acme Corp Customer', 'customer@fleet.com', '$2y$10$L19H/vD3eJgY.5dD3D2r4evqI4fT2r2HhXG4o1q2B3G4T2eE1dE2e', 'customer');
+(1, 'System Administrator', 'admin@fleet.com', '$2y$10$alZR2DLVuLoNNYbxrLTXw.asksF5qBw/Q95Ma1obygLMXKj2AnEMq', 'admin'),
+(2, 'Operations Dispatcher', 'dispatcher@fleet.com', '$2y$10$alZR2DLVuLoNNYbxrLTXw.asksF5qBw/Q95Ma1obygLMXKj2AnEMq', 'admin'),
+(3, 'Yard Officer / Driver Kwame', 'yard@fleet.com', '$2y$10$alZR2DLVuLoNNYbxrLTXw.asksF5qBw/Q95Ma1obygLMXKj2AnEMq', 'driver'),
+(4, 'Acme Corp Customer', 'customer@fleet.com', '$2y$10$alZR2DLVuLoNNYbxrLTXw.asksF5qBw/Q95Ma1obygLMXKj2AnEMq', 'customer');
 
 -- Seed vehicles (Ghana localized)
 INSERT INTO vehicles (id, vehicle_name, license_plate, model, capacity, status) VALUES
