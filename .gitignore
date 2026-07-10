@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Dependencies
+vendor/
+
+# Environment Secrets
+.env
+
