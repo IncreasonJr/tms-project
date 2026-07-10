@@ -112,4 +112,163 @@ function validateCSRFToken($token) {
     }
     return hash_equals($_SESSION['csrf_token'], $token);
 }
+
+// 8. Tracking Statuses Configuration
+$TRACKING_STATUSES = [
+    'Order Received' => 'blue',
+    'Vehicle Assigned' => 'purple',
+    'Departing' => 'orange',
+    'In Transit' => 'yellow',
+    'Arrived' => 'green',
+    'Delivered' => 'darkgreen'
+];
+
+/**
+ * Insert a new tracking update into the tracking_updates table
+ */
+function addTrackingUpdate($trip_id, $status, $location, $description) {
+    global $conn;
+    $query = "INSERT INTO tracking_updates (trip_id, status, location, description) VALUES (?, ?, ?, ?)";
+    if ($stmt = mysqli_prepare($conn, $query)) {
+        mysqli_stmt_bind_param($stmt, "isss", $trip_id, $status, $location, $description);
+        $result = mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+        return $result;
+    }
+    return false;
+}
+
+/**
+ * Fetch all tracking updates for a specific trip (newest first)
+ */
+function getTrackingHistory($trip_id) {
+    global $conn;
+    $history = [];
+    $query = "SELECT * FROM tracking_updates WHERE trip_id = ? ORDER BY updated_at DESC, id DESC";
+    if ($stmt = mysqli_prepare($conn, $query)) {
+        mysqli_stmt_bind_param($stmt, "i", $trip_id);
+        if (mysqli_stmt_execute($stmt)) {
+            $result = mysqli_stmt_get_result($stmt);
+            while ($row = mysqli_fetch_assoc($result)) {
+                $history[] = $row;
+            }
+            mysqli_free_result($result);
+        }
+        mysqli_stmt_close($stmt);
+    }
+    return $history;
+}
+
+/**
+ * Fetch trip details and all tracking updates for a trip using its trip code
+ */
+function getTrackingByCode($trip_code) {
+    global $conn;
+    global $TRACKING_STATUSES;
+    
+    $query = "SELECT t.id, t.trip_code, t.origin, t.destination, t.trip_date, 
+                     v.vehicle_name, v.license_plate, 
+                     d.full_name AS driver_name, d.phone AS driver_phone
+              FROM trips t
+              LEFT JOIN vehicles v ON t.vehicle_id = v.id
+              LEFT JOIN drivers d ON t.driver_id = d.id
+              WHERE t.trip_code = ? LIMIT 1";
+              
+    if ($stmt = mysqli_prepare($conn, $query)) {
+        mysqli_stmt_bind_param($stmt, "s", $trip_code);
+        if (mysqli_stmt_execute($stmt)) {
+            $result = mysqli_stmt_get_result($stmt);
+            if ($trip = mysqli_fetch_assoc($result)) {
+                mysqli_free_result($result);
+                mysqli_stmt_close($stmt);
+                
+                $trip_id = intval($trip['id']);
+                $history = getTrackingHistory($trip_id);
+                $latest_status = getLatestTrackingStatus($trip_id);
+                $color = isset($TRACKING_STATUSES[$latest_status]) ? $TRACKING_STATUSES[$latest_status] : 'gray';
+                
+                return [
+                    'trip_details' => [
+                        'trip_code' => $trip['trip_code'],
+                        'origin' => $trip['origin'],
+                        'destination' => $trip['destination'],
+                        'trip_date' => $trip['trip_date'],
+                        'vehicle_name' => $trip['vehicle_name'],
+                        'license_plate' => $trip['license_plate'],
+                        'driver_name' => $trip['driver_name'],
+                        'driver_phone' => $trip['driver_phone']
+                    ],
+                    'tracking_history' => $history,
+                    'current_status' => $latest_status,
+                    'status_color' => $color
+                ];
+            }
+            mysqli_free_result($result);
+        }
+        mysqli_stmt_close($stmt);
+    }
+    return false;
+}
+
+/**
+ * Fetch trip details by ID
+ */
+function getTripById($trip_id) {
+    global $conn;
+    $query = "SELECT * FROM trips WHERE id = ? LIMIT 1";
+    if ($stmt = mysqli_prepare($conn, $query)) {
+        mysqli_stmt_bind_param($stmt, "i", $trip_id);
+        if (mysqli_stmt_execute($stmt)) {
+            $result = mysqli_stmt_get_result($stmt);
+            $trip = mysqli_fetch_assoc($result);
+            mysqli_free_result($result);
+            mysqli_stmt_close($stmt);
+            return $trip;
+        }
+        mysqli_stmt_close($stmt);
+    }
+    return null;
+}
+
+/**
+ * Fetch all trips with trip_code, origin, destination formatted for dropdowns
+ */
+function getAllTripsForDropdown() {
+    global $conn;
+    $trips = [];
+    $query = "SELECT id, trip_code, origin, destination FROM trips ORDER BY trip_code ASC";
+    if ($result = mysqli_query($conn, $query)) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $formatted = $row['trip_code'] . " - " . $row['origin'] . " to " . $row['destination'];
+            $trips[] = [
+                'id' => $row['id'],
+                'trip_code' => $row['trip_code'],
+                'display_text' => $formatted
+            ];
+        }
+        mysqli_free_result($result);
+    }
+    return $trips;
+}
+
+/**
+ * Fetch the most recent tracking status for a trip
+ */
+function getLatestTrackingStatus($trip_id) {
+    global $conn;
+    $status = null;
+    $query = "SELECT status FROM tracking_updates WHERE trip_id = ? ORDER BY updated_at DESC, id DESC LIMIT 1";
+    if ($stmt = mysqli_prepare($conn, $query)) {
+        mysqli_stmt_bind_param($stmt, "i", $trip_id);
+        if (mysqli_stmt_execute($stmt)) {
+            $result = mysqli_stmt_get_result($stmt);
+            if ($row = mysqli_fetch_assoc($result)) {
+                $status = $row['status'];
+            }
+            mysqli_free_result($result);
+        }
+        mysqli_stmt_close($stmt);
+    }
+    return $status;
+}
 ?>

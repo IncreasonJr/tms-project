@@ -136,6 +136,20 @@ if (isset($_POST['add_trip'])) {
                     }
                 }
                 
+                // Step D: Auto-create the first tracking update
+                if ($transaction_success) {
+                    $trip_id = mysqli_insert_id($conn);
+                    if ($trip_id > 0) {
+                        if (!addTrackingUpdate($trip_id, 'Order Received', $origin, 'Delivery order created and confirmed')) {
+                            $transaction_success = false;
+                            $error = "Failed to auto-create initial tracking update.";
+                        }
+                    } else {
+                        $transaction_success = false;
+                        $error = "Failed to retrieve new trip ID for tracking.";
+                    }
+                }
+                
                 // Commit or Rollback transaction
                 if ($transaction_success) {
                     mysqli_commit($conn);

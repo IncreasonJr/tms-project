@@ -398,6 +398,69 @@ require_once 'includes/header.php';
     </form>
 </div>
 
+<!-- 📦 Tracking Status Section -->
+<div class="content-card" style="max-width: 600px; margin: 30px auto 0 auto; border-top: 4px solid var(--primary-color);">
+    <h3 class="panel-title" style="margin-bottom: 20px;">📦 Tracking Status</h3>
+    
+    <?php
+    $latest_status = getLatestTrackingStatus($id);
+    $tracking_history = getTrackingHistory($id);
+    ?>
+    
+    <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+        <strong>Current Status:</strong>
+        <?php if ($latest_status): ?>
+            <?php
+            $badge_color = isset($TRACKING_STATUSES[$latest_status]) ? $TRACKING_STATUSES[$latest_status] : 'gray';
+            $badge_style = "background: rgba(139, 92, 246, 0.15); color: #c084fc;"; // fallback purple
+            if ($badge_color === 'blue') { $badge_style = "background: rgba(59, 130, 246, 0.15); color: #60a5fa;"; }
+            elseif ($badge_color === 'purple') { $badge_style = "background: rgba(139, 92, 246, 0.15); color: #c084fc;"; }
+            elseif ($badge_color === 'orange') { $badge_style = "background: rgba(245, 158, 11, 0.15); color: #fbbf24;"; }
+            elseif ($badge_color === 'yellow') { $badge_style = "background: rgba(234, 179, 8, 0.15); color: #fef08a;"; }
+            elseif ($badge_color === 'green') { $badge_style = "background: rgba(16, 185, 129, 0.15); color: #34d399;"; }
+            elseif ($badge_color === 'darkgreen') { $badge_style = "background: rgba(4, 120, 87, 0.2); color: #059669;"; }
+            ?>
+            <span class="badge" style="<?php echo $badge_style; ?> padding: 6px 12px; font-weight: 600; border-radius: 6px;">
+                <?php echo htmlspecialchars($latest_status, ENT_QUOTES, 'UTF-8'); ?>
+            </span>
+        <?php else: ?>
+            <span class="badge badge-out_of_service" style="background: rgba(100, 116, 139, 0.15); color: #94a3b8; padding: 6px 12px; font-weight: 600; border-radius: 6px;">
+                No status updates yet
+            </span>
+        <?php endif; ?>
+    </div>
+
+    <!-- Timeline of updates -->
+    <div class="tracking-timeline" style="position: relative; padding-left: 20px; border-left: 2px solid rgba(255,255,255,0.08); margin-bottom: 24px; margin-top: 20px;">
+        <?php if (!empty($tracking_history)): ?>
+            <?php foreach ($tracking_history as $update): ?>
+                <div class="timeline-item" style="margin-bottom: 16px; position: relative;">
+                    <div style="position: absolute; left: -26px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary-color); border: 2px solid #0f172a;"></div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 2px;">
+                        <?php echo htmlspecialchars(date('M d, Y H:i', strtotime($update['updated_at'])), ENT_QUOTES, 'UTF-8'); ?>
+                        <?php if ($update['location']): ?>
+                            • <span style="color: var(--text-primary); font-weight: 500;"><?php echo htmlspecialchars($update['location'], ENT_QUOTES, 'UTF-8'); ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 2px;">
+                        <?php echo htmlspecialchars($update['status'], ENT_QUOTES, 'UTF-8'); ?>
+                    </div>
+                    <?php if ($update['description']): ?>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary);"><?php echo htmlspecialchars($update['description'], ENT_QUOTES, 'UTF-8'); ?></div>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <p style="font-size: 0.9rem; color: var(--text-secondary);">No tracking events logged for this trip.</p>
+        <?php endif; ?>
+    </div>
+
+    <!-- Link to update tracking page -->
+    <a href="update_tracking.php?trip_id=<?php echo htmlspecialchars($id, ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-secondary" style="display: block; text-align: center; text-decoration: none; margin-top: 15px;">
+        Update Tracking Status
+    </a>
+</div>
+
 <?php
 // Include footer layout
 require_once 'includes/footer.php';

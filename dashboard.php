@@ -54,6 +54,16 @@ if ($result = mysqli_query($conn, $query_trips)) {
 
 // Fetch user fullname from session (which was set as $_SESSION['username'])
 $fullname = isset($_SESSION['username']) ? $_SESSION['username'] : 'User';
+
+// Fetch recent 5 tracking updates across all trips
+$recent_updates = [];
+$recent_query = "SELECT tu.*, t.trip_code FROM tracking_updates tu JOIN trips t ON tu.trip_id = t.id ORDER BY tu.updated_at DESC, tu.id DESC LIMIT 5";
+if ($r_res = mysqli_query($conn, $recent_query)) {
+    while ($row = mysqli_fetch_assoc($r_res)) {
+        $recent_updates[] = $row;
+    }
+    mysqli_free_result($r_res);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -471,6 +481,54 @@ $fullname = isset($_SESSION['username']) ? $_SESSION['username'] : 'User';
                 </div>
             </div>
 
+        </section>
+
+        <!-- Recent Tracking Updates Section -->
+        <section class="actions-panel" style="margin-bottom: 40px;">
+            <h3 class="panel-title">Recent Tracking Updates</h3>
+            <?php if (!empty($recent_updates)): ?>
+                <div style="overflow-x: auto; margin-top: 20px;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;">
+                        <thead>
+                            <tr style="background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border-color);">
+                                <th style="padding: 16px; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">Trip Code</th>
+                                <th style="padding: 16px; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">Status</th>
+                                <th style="padding: 16px; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary);">Location</th>
+                                <th style="padding: 16px; font-weight: 600; font-size: 0.9rem; color: var(--text-secondary); text-align: right;">Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($recent_updates as $update): ?>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='none'">
+                                    <td style="padding: 16px;"><strong style="color: #8b5cf6; font-family: monospace; font-size: 0.95rem;"><?php echo htmlspecialchars($update['trip_code'], ENT_QUOTES, 'UTF-8'); ?></strong></td>
+                                    <td style="padding: 16px;">
+                                        <?php
+                                        $status = $update['status'];
+                                        $badge_style = "background: rgba(139, 92, 246, 0.15); color: #c084fc;"; // fallback purple
+                                        if (isset($TRACKING_STATUSES[$status])) {
+                                            $badge_color = $TRACKING_STATUSES[$status];
+                                            if ($badge_color === 'blue') { $badge_style = "background: rgba(59, 130, 246, 0.15); color: #60a5fa;"; }
+                                            elseif ($badge_color === 'purple') { $badge_style = "background: rgba(139, 92, 246, 0.15); color: #c084fc;"; }
+                                            elseif ($badge_color === 'orange') { $badge_style = "background: rgba(245, 158, 11, 0.15); color: #fbbf24;"; }
+                                            elseif ($badge_color === 'yellow') { $badge_style = "background: rgba(234, 179, 8, 0.15); color: #fef08a;"; }
+                                            elseif ($badge_color === 'green') { $badge_style = "background: rgba(16, 185, 129, 0.15); color: #34d399;"; }
+                                            elseif ($badge_color === 'darkgreen') { $badge_style = "background: rgba(4, 120, 87, 0.2); color: #059669;"; }
+                                        }
+                                        ?>
+                                        <span style="<?php echo $badge_style; ?> padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; display: inline-block;">
+                                            <?php echo htmlspecialchars($status, ENT_QUOTES, 'UTF-8'); ?>
+                                        </span>
+                                    </td>
+                                    <td style="padding: 16px; color: var(--text-primary);"><?php echo htmlspecialchars($update['location'] ?: '—', ENT_QUOTES, 'UTF-8'); ?></td>
+                                    <td style="padding: 16px; color: var(--text-secondary); font-size: 0.85rem; text-align: right;"><?php echo htmlspecialchars(date('M d, Y H:i', strtotime($update['updated_at'])), ENT_QUOTES, 'UTF-8'); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else: ?>
+                <p style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 15px;">No tracking updates have been recorded yet.</p>
+            <?php endif; ?>
         </section>
 
         <!-- Quick Actions Panel -->

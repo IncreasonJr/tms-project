@@ -90,6 +90,10 @@ $result = mysqli_query($conn, $query);
                             </td>
                             <td style="text-align: right;">
                                 <div style="display: inline-flex; gap: 8px; align-items: center;">
+                                    <!-- Track button linking to track.php?code=[trip_code] -->
+                                    <a href="track.php?code=<?php echo htmlspecialchars($row['trip_code'], ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-sm btn-info" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3);">
+                                        🔍 Track
+                                    </a>
                                     <!-- Edit button linking to edit_trip.php?id=[trip_id] -->
                                     <a href="edit_trip.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning">
                                         Edit
