@@ -203,11 +203,11 @@ if ($is_logged_in) {
                 <!-- Animated Stats Row -->
                 <div class="stat-row reveal delay-1">
                     <div class="stat-row-item">
-                        <strong class="lp-count" data-target="6" data-suffix="+">6+</strong>
+                        <strong class="lp-count" data-target="6" data-suffix="+">06+</strong>
                         <span>Fleet Vehicles</span>
                     </div>
                     <div class="stat-row-item">
-                        <strong class="lp-count" data-target="6" data-suffix="+">6+</strong>
+                        <strong class="lp-count" data-target="6" data-suffix="+">06+</strong>
                         <span>Registered Drivers</span>
                     </div>
                     <div class="stat-row-item">
@@ -215,7 +215,7 @@ if ($is_logged_in) {
                         <span>Live Tracking</span>
                     </div>
                     <div class="stat-row-item">
-                        <strong class="lp-count" data-target="3" data-suffix="">3</strong>
+                        <strong class="lp-count" data-target="3" data-suffix="">03</strong>
                         <span>Active Routes</span>
                     </div>
                 </div>
@@ -318,7 +318,9 @@ if ($is_logged_in) {
                         start = target;
                         clearInterval(timer);
                     }
-                    el.textContent = start + suffix;
+                    // Format single-digit numbers with leading zero
+                    const displayVal = start < 10 ? '0' + start : start;
+                    el.textContent = displayVal + suffix;
                 }, intervalTime);
             };
 
