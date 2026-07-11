@@ -308,7 +308,7 @@ if ($is_logged_in) {
                 const suffix = el.getAttribute('data-suffix') || '';
                 if (isNaN(target)) return;
                 let start = 0;
-                const totalDuration = 1800; // Slowed down to 1.8 seconds
+                const totalDuration = 1000; // Adjusted to 1.0 second
                 const intervalTime = Math.max(30, Math.floor(totalDuration / target));
                 const step = 1;
                 
