@@ -144,8 +144,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </p>
             </div>
             <a href="track.php?code=<?php echo htmlspecialchars($trip['trip_code'], ENT_QUOTES, 'UTF-8'); ?>" target="_blank" class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.5rem 1rem;">
-                <i data-lucide="external-link"></i>
-                <span>🔍 Track Public Portal</span>
+                <i data-lucide="search" style="width: 14px; height: 14px; color: var(--accent-blue);"></i>
+                <span>Track Portal</span>
             </a>
         </div>
     </div>

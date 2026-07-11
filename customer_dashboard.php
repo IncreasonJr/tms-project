@@ -86,7 +86,7 @@ require_once 'includes/header.php';
 
 <!-- Search / Track Shipment Box -->
 <div class="dashboard-panel" style="padding: 2rem; margin-bottom: 2rem; text-align: center;">
-    <h3 style="font-size: 1.1rem; font-weight: 700; color: white; margin-bottom: 0.5rem;">🔍 Track Any Dispatch Shipment</h3>
+    <h3 style="font-size: 1.1rem; font-weight: 700; color: white; margin-bottom: 0.5rem;"><i data-lucide="search" style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 6px; color: var(--accent-blue);"></i>Track Any Dispatch Shipment</h3>
     <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Enter your unique trip code to view the live journey log.</p>
     
     <form action="track.php" method="GET" style="display: flex; gap: 1rem; max-width: 600px; margin: 0 auto; flex-wrap: wrap;">

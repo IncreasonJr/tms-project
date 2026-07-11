@@ -68,56 +68,6 @@ function getStageIndex($status, $stages) {
     pointer-events: none;
 }
 
-/* Road Track */
-.road-track-wrapper {
-    position: relative;
-    margin: 2.5rem 0 1rem;
-}
-.road-track {
-    position: relative;
-    height: 10px;
-    background: rgba(255,255,255,0.07);
-    border-radius: 10px;
-    margin: 0 3.5%;
-    overflow: visible;
-}
-.road-track-fill {
-    height: 100%;
-    border-radius: 10px;
-    background: linear-gradient(90deg, #3b82f6, #10b981);
-    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-}
-.road-track-fill::after {
-    content: '';
-    position: absolute;
-    right: -1px; top: 50%;
-    transform: translateY(-50%);
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    background: white;
-    box-shadow: 0 0 12px rgba(59,130,246,0.8);
-}
-
-/* Truck Animation */
-.truck-container {
-    position: absolute;
-    top: -28px;
-    transition: left 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-    transform: translateX(-50%);
-    z-index: 10;
-    filter: drop-shadow(0 4px 12px rgba(59,130,246,0.5));
-}
-.truck-svg {
-    width: 56px;
-    height: 56px;
-    animation: truckBob 1.8s ease-in-out infinite;
-}
-@keyframes truckBob {
-    0%, 100% { transform: translateY(0); }
-    50%       { transform: translateY(-3px); }
-}
-
 /* Stage nodes */
 .stage-nodes {
     display: flex;
@@ -227,12 +177,6 @@ function getStageIndex($status, $stages) {
     font-weight: 700;
     color: var(--text-primary);
 }
-.info-card-value.mono {
-    font-family: monospace;
-    font-size: 1rem;
-    letter-spacing: 1px;
-    color: #818cf8;
-}
 
 /* Timeline */
 .tl-wrapper { position: relative; padding-left: 2.5rem; }
@@ -299,7 +243,6 @@ body.light-theme .route-visual {
     background: rgba(255,255,255,0.85);
     border-color: rgba(59,130,246,0.15);
 }
-body.light-theme .road-track { background: rgba(15,23,42,0.08); }
 body.light-theme .stage-node-label { color: #94a3b8; }
 body.light-theme .stage-node.active .stage-node-label { color: #0f172a; }
 body.light-theme .stage-node.done .stage-node-label { color: #059669; }
@@ -359,7 +302,6 @@ body.light-theme .status-pill { background: rgba(59,130,246,0.08); }
     if ($active_idx === -1) $active_idx = 0;
     $total_stages = count($journey_stages) - 1;
     $fill_pct     = $total_stages > 0 ? round(($active_idx / $total_stages) * 100) : 0;
-    $truck_left   = $fill_pct; // percentage position on road
     $active_color = $journey_stages[$active_idx]['color'];
     ?>
 
@@ -369,7 +311,7 @@ body.light-theme .status-pill { background: rgba(59,130,246,0.08); }
         <div class="route-visual">
 
             <!-- Top Row: Trip Code + Status -->
-            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
                 <div>
                     <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); font-weight: 700; margin-bottom: 0.25rem;">Trip Code</div>
                     <div style="font-family: monospace; font-size: 1.5rem; font-weight: 900; color: #818cf8; letter-spacing: 2px;"><?php echo htmlspecialchars($details['trip_code'], ENT_QUOTES, 'UTF-8'); ?></div>
@@ -380,53 +322,55 @@ body.light-theme .status-pill { background: rgba(59,130,246,0.08); }
                 </div>
             </div>
 
-            <!-- Origin → Destination labels -->
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-                <div style="text-align: left;">
-                    <div style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.2rem;">Origin</div>
-                    <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary);"><?php echo htmlspecialchars(explode(',', $details['origin'])[0], ENT_QUOTES, 'UTF-8'); ?></div>
-                </div>
-                <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.08); margin: 0 1rem;"></div>
-                <div style="text-align: right;">
-                    <div style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.2rem;">Destination</div>
-                    <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary);"><?php echo htmlspecialchars(explode(',', $details['destination'])[0], ENT_QUOTES, 'UTF-8'); ?></div>
-                </div>
-            </div>
-
-            <!-- Road track with animated truck -->
-            <div class="road-track-wrapper">
-                <!-- Truck icon (SVG) -->
-                <div class="truck-container" id="truck-icon" style="left: <?php echo max(4, min(96, $truck_left)); ?>%;">
-                    <svg class="truck-svg" viewBox="0 0 64 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Truck body -->
-                        <rect x="2" y="10" width="36" height="22" rx="3" fill="#3b82f6" opacity="0.9"/>
-                        <!-- Cab -->
-                        <path d="M38 14 L52 14 L58 24 L58 32 L38 32 Z" fill="#2563eb"/>
-                        <!-- Windshield -->
-                        <path d="M40 15 L51 15 L56 24 L40 24 Z" fill="#93c5fd" opacity="0.7"/>
-                        <!-- Cargo lines -->
-                        <line x1="10" y1="16" x2="10" y2="28" stroke="white" stroke-width="1" opacity="0.3"/>
-                        <line x1="18" y1="16" x2="18" y2="28" stroke="white" stroke-width="1" opacity="0.3"/>
-                        <line x1="26" y1="16" x2="26" y2="28" stroke="white" stroke-width="1" opacity="0.3"/>
-                        <!-- Wheels -->
-                        <circle cx="14" cy="33" r="5" fill="#1e293b" stroke="#60a5fa" stroke-width="2"/>
-                        <circle cx="14" cy="33" r="2.5" fill="#60a5fa" opacity="0.6"/>
-                        <circle cx="48" cy="33" r="5" fill="#1e293b" stroke="#60a5fa" stroke-width="2"/>
-                        <circle cx="48" cy="33" r="2.5" fill="#60a5fa" opacity="0.6"/>
-                        <!-- Headlight -->
-                        <rect x="55" y="25" width="4" height="5" rx="1" fill="#fde68a"/>
-                        <!-- Speed lines -->
-                        <?php if ($curr_status === 'In Transit' || $curr_status === 'Departing'): ?>
-                        <line x1="-4" y1="18" x2="2" y2="18" stroke="#60a5fa" stroke-width="1.5" stroke-dasharray="2 2" opacity="0.5"/>
-                        <line x1="-6" y1="22" x2="2" y2="22" stroke="#60a5fa" stroke-width="1" stroke-dasharray="2 2" opacity="0.4"/>
-                        <line x1="-3" y1="26" x2="2" y2="26" stroke="#60a5fa" stroke-width="1" stroke-dasharray="2 2" opacity="0.3"/>
-                        <?php endif; ?>
-                    </svg>
+            <!-- Dynamic GPS Highway canvas & Telemetry Grid -->
+            <div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 1.5rem; margin: 1.5rem 0; min-height: 250px; flex-wrap: wrap;" id="map-dashboard-grid">
+                
+                <!-- Map Canvas -->
+                <div style="position: relative; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.3); overflow: hidden; padding: 0.5rem; min-height: 250px;" id="canvas-container">
+                    <canvas id="gps-route-canvas" style="display: block; width: 100%; height: 100%; min-height: 250px;"></canvas>
+                    
+                    <div style="position: absolute; top: 12px; left: 12px; display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.65rem; background: rgba(15,23,42,0.85); border: 1px solid rgba(59,130,246,0.3); border-radius: 6px; backdrop-filter: blur(10px); font-size: 0.68rem; font-family: monospace; font-weight: 700; color: #60a5fa;">
+                        <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; box-shadow: 0 0 8px #3b82f6; animation: blink 1s infinite;"></span>
+                        <span>GPS LIVE FEED: CONNECTED</span>
+                    </div>
                 </div>
 
-                <!-- Road -->
-                <div class="road-track">
-                    <div class="road-track-fill" id="route-fill" style="width: <?php echo $fill_pct; ?>%;"></div>
+                <!-- Telemetry Metrics Card -->
+                <div style="display: flex; flex-direction: column; justify-content: space-between; gap: 1rem; padding: 1.25rem; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px;" id="telemetry-panel">
+                    <div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.65rem; margin-bottom: 0.75rem;">
+                            <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); font-weight: 700;">Voyage Telemetry</span>
+                            <span id="tel-signal" style="font-size: 0.68rem; font-family: monospace; font-weight: 700; color: #10b981; display: flex; align-items: center; gap: 4px;">
+                                <i data-lucide="signal" style="width: 12px; height: 12px; vertical-align: middle;"></i> SIGNAL: 100%
+                            </span>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">GPS Coordinates</span>
+                                <strong id="tel-coords" style="font-size: 0.82rem; font-family: monospace; color: var(--text-primary);">--° N, --° W</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">Current Landmark</span>
+                                <strong id="tel-location" style="font-size: 0.82rem; color: #60a5fa; text-align: right; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($latest_update ? $latest_update['location'] : $details['origin'], ENT_QUOTES, 'UTF-8'); ?></strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">Cruising Speed</span>
+                                <strong id="tel-speed" style="font-size: 0.82rem; font-family: monospace; color: #10b981;">72 km/h</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;">Route Distance</span>
+                                <strong id="tel-distance" style="font-size: 0.82rem; font-family: monospace; color: #fbbf24;">-- km remaining</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Countdown clock card -->
+                    <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 12px; padding: 0.75rem 1rem; text-align: center;">
+                        <span style="font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: #93c5fd; font-weight: 700; display: block; margin-bottom: 0.25rem;">Est. Time to Destination</span>
+                        <div id="tel-eta" style="font-size: 1.4rem; font-family: monospace; font-weight: 900; color: #60a5fa; letter-spacing: 1px;">00:00:00</div>
+                        <span style="font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 0.15rem;">Live ETA Countdown</span>
+                    </div>
                 </div>
             </div>
 
@@ -577,17 +521,269 @@ body.light-theme .status-pill { background: rgba(59,130,246,0.08); }
 </div>
 
 <script>
-// Animate truck and progress bar on load
+// Dynamic Route Canvas & GPS Telemetry Simulator
 document.addEventListener('DOMContentLoaded', () => {
-    const fill = document.getElementById('route-fill');
-    const truck = document.getElementById('truck-icon');
-    if (fill && truck) {
-        // Brief delay then animate in
-        setTimeout(() => {
-            fill.style.transition = 'width 1.4s cubic-bezier(0.4,0,0.2,1)';
-            truck.style.transition = 'left 1.4s cubic-bezier(0.4,0,0.2,1)';
-        }, 200);
+    <?php if ($tracking_data): ?>
+    
+    // GPS Coordinates Database of major towns in Ghana
+    const coordinates = {
+        "accra": {lat: 5.6037, lng: -0.1870},
+        "kumasi": {lat: 6.6961, lng: -1.6149},
+        "tamale": {lat: 9.4075, lng: -0.8393},
+        "takoradi": {lat: 4.9016, lng: -1.7831},
+        "cape coast": {lat: 5.1053, lng: -1.2466},
+        "koforidua": {lat: 6.0945, lng: -0.2591},
+        "ho": {lat: 6.1084, lng: 0.4738},
+        "sunyani": {lat: 7.3349, lng: -2.3124},
+        "wa": {lat: 9.7126, lng: -2.5089},
+        "bolgatanga": {lat: 10.7856, lng: -0.8514}
+    };
+
+    const originCity = "<?php echo htmlspecialchars(explode(',', $details['origin'])[0], ENT_QUOTES, 'UTF-8'); ?>";
+    const destCity = "<?php echo htmlspecialchars(explode(',', $details['destination'])[0], ENT_QUOTES, 'UTF-8'); ?>";
+    const fillPct = <?php echo intval($fill_pct); ?>;
+    const currentStatus = "<?php echo htmlspecialchars($curr_status, ENT_QUOTES, 'UTF-8'); ?>";
+
+    // Setup Canvas
+    const canvas = document.getElementById('gps-route-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
     }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Resolve Lat/Lng base points
+    const startCoord = coordinates[originCity.toLowerCase()] || coordinates["accra"];
+    const endCoord = coordinates[destCity.toLowerCase()] || coordinates["kumasi"];
+
+    // Current position along the line
+    let currentLat = startCoord.lat + (endCoord.lat - startCoord.lat) * (fillPct / 100);
+    let currentLng = startCoord.lng + (endCoord.lng - startCoord.lng) * (fillPct / 100);
+
+    // Speedometer & Distance base values
+    let baseSpeed = (currentStatus === 'In Transit') ? 78 : ((currentStatus === 'Departing') ? 35 : 0);
+    let totalDistance = 240; // Simulated km
+    let distanceRemaining = Math.max(0, Math.round(totalDistance * (1 - (fillPct / 100))));
+    let distanceCovered = totalDistance - distanceRemaining;
+    
+    // ETA countdown duration in seconds
+    let etaSeconds = distanceRemaining * 65; // Approx 65 seconds per km
+    if (currentStatus === 'Delivered') etaSeconds = 0;
+    if (currentStatus === 'Arrived') etaSeconds = 120; // 2 mins to park
+
+    const formatTime = (secs) => {
+        const h = Math.floor(secs / 3600).toString().padStart(2, '0');
+        const m = Math.floor((secs % 3600) / 60).toString().padStart(2, '0');
+        const s = (secs % 60).toString().padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    };
+
+    // Telemetry updates
+    const etaEl = document.getElementById('tel-eta');
+    const coordsEl = document.getElementById('tel-coords');
+    const speedEl = document.getElementById('tel-speed');
+    const distanceEl = document.getElementById('tel-distance');
+
+    // Winding highway path helper (bezier control points calculation)
+    function getBezierPoint(p0, p1, p2, p3, t) {
+        const cx = 3 * (p1.x - p0.x);
+        const bx = 3 * (p2.x - p1.x) - cx;
+        const ax = p3.x - p0.x - cx - bx;
+        
+        const cy = 3 * (p1.y - p0.y);
+        const by = 3 * (p2.y - p1.y) - cy;
+        const ay = p3.y - p0.y - cy - by;
+        
+        const xt = ax*(t*t*t) + bx*(t*t) + cx*t + p0.x;
+        const yt = ay*(t*t*t) + by*(t*t) + cy*t + p0.y;
+        
+        return {x: xt, y: yt};
+    }
+
+    // Render loop
+    function drawMap() {
+        if (!canvas.width || !canvas.height) return;
+        
+        const w = canvas.getBoundingClientRect().width;
+        const h = canvas.getBoundingClientRect().height;
+        const padding = 45;
+        
+        ctx.clearRect(0, 0, w, h);
+        
+        // Define coordinates relative to size
+        const p0 = { x: padding, y: h - padding };
+        const p1 = { x: w * 0.35, y: h * 0.85 };
+        const p2 = { x: w * 0.65, y: h * 0.15 };
+        const p3 = { x: w - padding, y: padding };
+        
+        // Draw gridlines (futuristic radar style)
+        ctx.strokeStyle = document.body.classList.contains('light-theme') ? 'rgba(0, 0, 0, 0.04)' : 'rgba(59, 130, 246, 0.04)';
+        ctx.lineWidth = 1;
+        const gridSpacing = 20;
+        for (let x = 0; x < w; x += gridSpacing) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, h);
+            ctx.stroke();
+        }
+        for (let y = 0; y < h; y += gridSpacing) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(w, y);
+            ctx.stroke();
+        }
+        
+        // Draw highway road layout
+        ctx.strokeStyle = document.body.classList.contains('light-theme') ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+        ctx.lineWidth = 8;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(p0.x, p0.y);
+        ctx.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
+        ctx.stroke();
+        
+        // Draw middle divider dashed line
+        ctx.strokeStyle = document.body.classList.contains('light-theme') ? 'rgba(0,0,0,0.15)' : 'rgba(59,130,246,0.2)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 8]);
+        ctx.beginPath();
+        ctx.moveTo(p0.x, p0.y);
+        ctx.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
+        ctx.stroke();
+        ctx.setLineDash([]); // Reset
+        
+        // Draw filled progress route (green/blue)
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(p0.x, p0.y);
+        
+        const currentProgressT = fillPct / 100;
+        for (let t = 0; t <= currentProgressT; t += 0.01) {
+            const pt = getBezierPoint(p0, p1, p2, p3, t);
+            ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.stroke();
+        
+        // Draw Origin City Node
+        ctx.fillStyle = '#3b82f6';
+        ctx.beginPath();
+        ctx.arc(p0.x, p0.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.2)';
+        ctx.beginPath();
+        ctx.arc(p0.x, p0.y, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = document.body.classList.contains('light-theme') ? '#0f172a' : '#94a3b8';
+        ctx.font = 'bold 10px monospace';
+        ctx.fillText(originCity, p0.x - 20, p0.y + 24);
+        
+        // Draw Destination City Node
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(p3.x, p3.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
+        ctx.beginPath();
+        ctx.arc(p3.x, p3.y, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = document.body.classList.contains('light-theme') ? '#0f172a' : '#94a3b8';
+        ctx.font = 'bold 10px monospace';
+        ctx.fillText(destCity, p3.x - 25, p3.y - 14);
+        
+        // Intermediate Checkpoint Landmarks along highway
+        const landmarkT = 0.5;
+        const landmarkPt = getBezierPoint(p0, p1, p2, p3, landmarkT);
+        ctx.fillStyle = fillPct >= 50 ? '#10b981' : 'rgba(255,255,255,0.2)';
+        ctx.beginPath();
+        ctx.arc(landmarkPt.x, landmarkPt.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.font = '8px sans-serif';
+        ctx.fillStyle = document.body.classList.contains('light-theme') ? '#64748b' : 'rgba(255,255,255,0.4)';
+        ctx.fillText("Transit Landmark", landmarkPt.x + 8, landmarkPt.y + 3);
+
+        // Draw animated vehicle (Truck) indicator
+        const truckPt = getBezierPoint(p0, p1, p2, p3, currentProgressT);
+        
+        let bounce = 0;
+        if (currentStatus === 'In Transit' || currentStatus === 'Departing') {
+            bounce = Math.sin(Date.now() / 150) * 1.5;
+        }
+        
+        // Pulse ring around truck
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(truckPt.x, truckPt.y + bounce, 12 + Math.abs(bounce*2), 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Truck Dot
+        ctx.fillStyle = '#2563eb';
+        ctx.beginPath();
+        ctx.arc(truckPt.x, truckPt.y + bounce, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Label vehicle marker
+        ctx.fillStyle = document.body.classList.contains('light-theme') ? '#0f172a' : '#ffffff';
+        ctx.font = 'bold 9px monospace';
+        ctx.fillText("VEHICLE", truckPt.x - 20, truckPt.y - 12 + bounce);
+        
+        requestAnimationFrame(drawMap);
+    }
+    
+    // Start canvas loop
+    setTimeout(() => {
+        requestAnimationFrame(drawMap);
+    }, 100);
+
+    // Live Telemetry Loop
+    setInterval(() => {
+        // GPS Coordinate signal drift simulation
+        const driftLat = (Math.random() * 0.0004) - 0.0002;
+        const driftLng = (Math.random() * 0.0004) - 0.0002;
+        const displayLat = (currentLat + driftLat).toFixed(4);
+        const displayLng = (currentLng + driftLng).toFixed(4);
+        if (coordsEl) coordsEl.textContent = `${displayLat}° N, ${displayLng}° W`;
+
+        // Cruise speed updates
+        if (currentStatus === 'In Transit') {
+            const speed = baseSpeed + Math.floor(Math.random() * 7) - 3;
+            if (speedEl) speedEl.textContent = `${speed} km/h`;
+        } else if (currentStatus === 'Departing') {
+            const speed = baseSpeed + Math.floor(Math.random() * 5) - 2;
+            if (speedEl) speedEl.textContent = `${speed} km/h`;
+        } else if (currentStatus === 'Delivered') {
+            if (speedEl) speedEl.textContent = `0 km/h (Parked)`;
+        } else {
+            if (speedEl) speedEl.textContent = `0 km/h`;
+        }
+
+        // ETA countdown decrementer
+        if (etaSeconds > 0) {
+            etaSeconds--;
+            if (etaEl) etaEl.textContent = formatTime(etaSeconds);
+        } else {
+            if (etaEl) etaEl.textContent = "00:00:00";
+        }
+
+        // Remaining distance updates
+        if (distanceEl) {
+            distanceEl.textContent = `${distanceRemaining} km / ${totalDistance} km`;
+        }
+
+    }, 1000);
+
+    <?php endif; ?>
 });
 </script>
 

@@ -40,6 +40,17 @@ if ($user_role === 'admin') {
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="dark-theme">
+    <script>
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('theme') || 'dark';
+                if (savedTheme === 'light') {
+                    document.body.classList.remove('dark-theme');
+                    document.body.classList.add('light-theme');
+                }
+            } catch (e) {}
+        })();
+    </script>
     
     <!-- Toast Notification Container -->
     <div id="toast-container" class="toast-container"></div>

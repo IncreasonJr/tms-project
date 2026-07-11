@@ -120,8 +120,8 @@ require_once 'includes/header.php';
 <?php endif; ?>
 
 <!-- Welcome User Banner -->
-<div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.05) 100%); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 16px; padding: 24px; margin-bottom: 2rem;">
-    <h2 style="font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem;">Hello Officer, <?php echo htmlspecialchars($user_name, ENT_QUOTES, 'UTF-8'); ?>!</h2>
+<div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(139, 92, 246, 0.08) 100%); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 16px; padding: 24px; margin-bottom: 2rem;">
+    <h2 style="font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem;">Hello Officer, <?php echo htmlspecialchars($driver_record ? ($driver_record['full_name'] ?? $driver_record['fullname'] ?? 'Driver') : 'Driver', ENT_QUOTES, 'UTF-8'); ?>!</h2>
     <p style="font-size: 0.9rem; color: var(--text-secondary);">Here are your currently assigned dispatches, transport status updates, and route schedules.</p>
 </div>
 
@@ -256,7 +256,7 @@ require_once 'includes/header.php';
                                         Log Status
                                     </a>
                                     <a href="track.php?code=<?php echo htmlspecialchars($trip['trip_code'], ENT_QUOTES, 'UTF-8'); ?>" target="_blank" class="btn btn-sm btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; font-weight: 600; border-radius: 6px;">
-                                        🔍 Tracker
+                                        <i data-lucide="search" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 2px;"></i> Tracker
                                     </a>
                                 </div>
                             </td>
