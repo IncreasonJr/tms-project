@@ -308,8 +308,10 @@ if ($is_logged_in) {
                 const suffix = el.getAttribute('data-suffix') || '';
                 if (isNaN(target)) return;
                 let start = 0;
-                const duration = 1200;
-                const step = Math.max(1, Math.ceil(target / (duration / 16)));
+                const totalDuration = 1800; // Slowed down to 1.8 seconds
+                const intervalTime = Math.max(30, Math.floor(totalDuration / target));
+                const step = 1;
+                
                 const timer = setInterval(() => {
                     start += step;
                     if (start >= target) {
@@ -317,7 +319,7 @@ if ($is_logged_in) {
                         clearInterval(timer);
                     }
                     el.textContent = start + suffix;
-                }, 16);
+                }, intervalTime);
             };
 
             // Trigger count-up on load after a short delay to sync with animations
