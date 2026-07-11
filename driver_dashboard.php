@@ -251,7 +251,7 @@ require_once 'includes/header.php';
                             </td>
                             <td style="text-align: right;">
                                 <div style="display: inline-flex; gap: 8px; align-items: center; justify-content: flex-end; width: 100%;">
-                                    <a href="update_tracking.php?trip_id=<?php echo $trip['id']; ?>" class="btn btn-sm btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; font-weight: 600; border-radius: 6px;">
+                                    <a href="track.php?code=<?php echo htmlspecialchars($trip['trip_code'], ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-sm btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; font-weight: 600; border-radius: 6px;">
                                         <i data-lucide="activity" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 4px;"></i>
                                         Log Status
                                     </a>

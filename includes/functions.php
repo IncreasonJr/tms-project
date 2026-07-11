@@ -77,7 +77,7 @@ function get_vehicle_name($vehicle_id) {
 function get_all_drivers() {
     global $conn, $db_connected;
     if ($db_connected) {
-        $sql = "SELECT * FROM drivers ORDER BY fullname ASC";
+        $sql = "SELECT * FROM drivers ORDER BY full_name ASC";
         $result = mysqli_query($conn, $sql);
         $drivers = [];
         if ($result) {
@@ -97,11 +97,11 @@ function get_driver_name($driver_id) {
     if (!$driver_id) return 'Not Assigned';
     
     if ($db_connected) {
-        $sql = "SELECT fullname FROM drivers WHERE id = " . intval($driver_id);
+        $sql = "SELECT full_name FROM drivers WHERE id = " . intval($driver_id);
         $result = mysqli_query($conn, $sql);
         if ($result && mysqli_num_rows($result) > 0) {
             $row = mysqli_fetch_assoc($result);
-            return $row['fullname'];
+            return $row['full_name'];
         }
     } else {
         if (isset($_SESSION['mock_drivers'][$driver_id])) {

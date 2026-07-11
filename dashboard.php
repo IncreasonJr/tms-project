@@ -494,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <span style="font-size: 0.7rem; color: #c4b5fd; opacity: 0.8;">Dispatch a route</span>
         </a>
 
-        <a href="update_tracking.php" style="
+        <a href="track.php" style="
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             gap: 0.75rem; padding: 1.5rem 1rem; text-decoration: none;
             background: linear-gradient(145deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05));

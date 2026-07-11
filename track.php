@@ -10,19 +10,93 @@ require_once 'includes/functions.php';
 // Enforce authentication — tracking is private
 check_login();
 
-require_once 'includes/header.php';
-
+$error = '';
 $code = isset($_GET['code']) ? trim($_GET['code']) : '';
-$error_msg = '';
 $tracking_data = null;
+$can_update = false;
 
-if (!empty($code) || isset($_GET['search'])) {
-    if (empty($code)) {
-        $error_msg = 'Please enter a tracking code.';
+// Handle POST request to add tracking updates directly on this page
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['log_update'])) {
+    $csrf_token = isset($_POST['csrf_token']) ? $_POST['csrf_token'] : '';
+    if (!validateCSRFToken($csrf_token)) {
+        $error = "Security token validation failed. Please try again.";
     } else {
+        $trip_id = isset($_POST['trip_id']) ? intval($_POST['trip_id']) : 0;
+        $trip_code = isset($_POST['trip_code']) ? trim($_POST['trip_code']) : '';
+        $status = isset($_POST['status']) ? sanitize_input($_POST['status']) : '';
+        $location = isset($_POST['location']) ? sanitize_input($_POST['location']) : '';
+        $description = isset($_POST['description']) ? sanitize_input($_POST['description']) : '';
+        
+        if (empty($trip_id) || empty($status) || empty($location) || empty($description)) {
+            $error = 'All fields are required to log a tracking update.';
+        } else {
+            $ok = insert_tracking_update($trip_id, $status, $location, $description);
+            if ($ok) {
+                header("Location: track.php?code=$trip_code&msg=Tracking+update+added+successfully!&type=success");
+                exit();
+            } else {
+                $error = 'Failed to record tracking update.';
+            }
+        }
+    }
+}
+
+// Fetch tracking data if code is present
+if (!empty($code) || isset($_GET['search'])) {
+    if (!empty($code)) {
         $tracking_data = getTrackingByCode($code);
         if ($tracking_data === false) {
-            $error_msg = 'Delivery not found. Please check your tracking code.';
+            $error = 'Delivery not found. Please check your tracking code.';
+        }
+    } else {
+        $error = 'Please enter a tracking code.';
+    }
+}
+
+// Determine if the current logged-in user is authorized to post updates
+if ($tracking_data) {
+    $details = $tracking_data['trip_details'];
+    $user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '';
+    
+    if ($user_role === 'admin') {
+        $can_update = true;
+    } elseif ($user_role === 'driver' && isset($_SESSION['user_id'])) {
+        // Resolve the driver's ID associated with this session
+        $logged_driver_id = 0;
+        if ($db_connected && $conn) {
+            $sql = "SELECT email FROM admins WHERE id = ? LIMIT 1";
+            if ($stmt = mysqli_prepare($conn, $sql)) {
+                mysqli_stmt_bind_param($stmt, "i", $_SESSION['user_id']);
+                if (mysqli_stmt_execute($stmt)) {
+                    $res = mysqli_stmt_get_result($stmt);
+                    if ($row = mysqli_fetch_assoc($res)) {
+                        $email = $row['email'];
+                        $d_sql = "SELECT id FROM drivers WHERE email = ? LIMIT 1";
+                        if ($d_stmt = mysqli_prepare($conn, $d_sql)) {
+                            mysqli_stmt_bind_param($d_stmt, "s", $email);
+                            if (mysqli_stmt_execute($d_stmt)) {
+                                $d_res = mysqli_stmt_get_result($d_stmt);
+                                if ($d_row = mysqli_fetch_assoc($d_res)) {
+                                    $logged_driver_id = $d_row['id'];
+                                }
+                            }
+                            mysqli_stmt_close($d_stmt);
+                        }
+                    }
+                    mysqli_free_result($res);
+                }
+                mysqli_stmt_close($stmt);
+            }
+        } else {
+            // Simulation mode Kwame Mensah check
+            if ($_SESSION['user_id'] == 3) {
+                $logged_driver_id = 1;
+            }
+        }
+        
+        // Match assigned driver
+        if ($logged_driver_id > 0 && intval($details['driver_id']) === $logged_driver_id) {
+            $can_update = true;
         }
     }
 }
@@ -42,6 +116,8 @@ function getStageIndex($status, $stages) {
     }
     return -1;
 }
+
+require_once 'includes/header.php';
 ?>
 
 <style>
@@ -285,17 +361,16 @@ body.light-theme .status-pill { background: rgba(59,130,246,0.08); }
                 <span>Track</span>
             </button>
         </form>
-        <?php if (!empty($error_msg)): ?>
+        <?php if (!empty($error)): ?>
             <div style="margin-top: 1rem; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.5rem;">
                 <i data-lucide="alert-triangle" style="width: 16px; height: 16px; color: #ef4444; flex-shrink: 0;"></i>
-                <span style="color: #fca5a5; font-size: 0.875rem;"><?php echo htmlspecialchars($error_msg, ENT_QUOTES, 'UTF-8'); ?></span>
+                <span style="color: #fca5a5; font-size: 0.875rem;"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></span>
             </div>
         <?php endif; ?>
     </div>
 
     <?php if ($tracking_data): ?>
     <?php
-    $details     = $tracking_data['trip_details'];
     $history     = $tracking_data['tracking_history'];
     $curr_status = $tracking_data['current_status'] ?: 'Order Received';
     $active_idx  = getStageIndex($curr_status, $journey_stages);
@@ -429,73 +504,132 @@ body.light-theme .status-pill { background: rgba(59,130,246,0.08); }
             </div>
         </div>
 
-        <!-- ===== TRACKING TIMELINE ===== -->
-        <div class="dashboard-panel" style="padding: 1.75rem;">
-            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.75rem;">
-                <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); display: flex; align-items: center; justify-content: center; color: #60a5fa; flex-shrink: 0;">
-                    <i data-lucide="history" style="width: 18px; height: 18px;"></i>
-                </div>
-                <div>
-                    <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0;">Transit Tracking Timeline</h3>
-                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin: 0;">Live status log for <?php echo htmlspecialchars($details['trip_code'], ENT_QUOTES, 'UTF-8'); ?></p>
-                </div>
-            </div>
+        <!-- Split Grid layout if authorized to log updates, otherwise normal timeline -->
+        <?php if ($can_update): ?>
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; margin-top: 0.5rem;" id="track-panels-grid">
+        <?php endif; ?>
 
-            <?php if (empty($history)): ?>
-                <div class="tl-wrapper">
-                    <div class="tl-line"></div>
-                    <div class="tl-step">
-                        <div class="tl-dot latest">
-                            <i data-lucide="clipboard-list" style="width: 14px; height: 14px;"></i>
-                        </div>
-                        <div class="tl-body">
-                            <div class="tl-header">
-                                <span class="tl-status">Order Received</span>
-                                <span class="tl-time"><?php echo htmlspecialchars(date('h:i A, M d, Y', strtotime($details['trip_date'])), ENT_QUOTES, 'UTF-8'); ?></span>
-                            </div>
-                            <div class="tl-loc">
-                                <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
-                                <?php echo htmlspecialchars($details['origin'], ENT_QUOTES, 'UTF-8'); ?>
-                            </div>
-                            <div class="tl-desc">Delivery order created and confirmed. Awaiting further status updates.</div>
-                        </div>
+            <!-- ===== TRACKING TIMELINE ===== -->
+            <div class="dashboard-panel" style="padding: 1.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.75rem;">
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); display: flex; align-items: center; justify-content: center; color: #60a5fa; flex-shrink: 0;">
+                        <i data-lucide="history" style="width: 18px; height: 18px;"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0;">Transit Tracking Timeline</h3>
+                        <p style="font-size: 0.75rem; color: var(--text-secondary); margin: 0;">Live status log for <?php echo htmlspecialchars($details['trip_code'], ENT_QUOTES, 'UTF-8'); ?></p>
                     </div>
                 </div>
-            <?php else: ?>
-                <div class="tl-wrapper">
-                    <div class="tl-line"></div>
-                    <?php foreach ($history as $idx => $update):
-                        $icon_map = [
-                            'Order Received'   => 'clipboard-list',
-                            'Vehicle Assigned' => 'truck',
-                            'Departing'        => 'log-out',
-                            'In Transit'       => 'navigation',
-                            'Arrived'          => 'map-pin',
-                            'Delivered'        => 'badge-check',
-                        ];
-                        $tl_icon = $icon_map[$update['status']] ?? 'circle';
-                        $is_latest = ($idx === 0);
-                    ?>
+
+                <?php if (empty($history)): ?>
+                    <div class="tl-wrapper">
+                        <div class="tl-line"></div>
                         <div class="tl-step">
-                            <div class="tl-dot <?php echo $is_latest ? 'latest' : ''; ?>">
-                                <i data-lucide="<?php echo $tl_icon; ?>" style="width: 14px; height: 14px;"></i>
+                            <div class="tl-dot latest">
+                                <i data-lucide="clipboard-list" style="width: 14px; height: 14px;"></i>
                             </div>
                             <div class="tl-body">
                                 <div class="tl-header">
-                                    <span class="tl-status"><?php echo htmlspecialchars($update['status'], ENT_QUOTES, 'UTF-8'); ?></span>
-                                    <span class="tl-time"><?php echo htmlspecialchars(date('h:i A, M d', strtotime($update['updated_at'])), ENT_QUOTES, 'UTF-8'); ?></span>
+                                    <span class="tl-status">Order Received</span>
+                                    <span class="tl-time"><?php echo htmlspecialchars(date('h:i A, M d, Y', strtotime($details['trip_date'])), ENT_QUOTES, 'UTF-8'); ?></span>
                                 </div>
                                 <div class="tl-loc">
                                     <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
-                                    <strong style="color: var(--text-primary);"><?php echo htmlspecialchars($update['location'], ENT_QUOTES, 'UTF-8'); ?></strong>
+                                    <?php echo htmlspecialchars($details['origin'], ENT_QUOTES, 'UTF-8'); ?>
                                 </div>
-                                <div class="tl-desc"><?php echo htmlspecialchars($update['description'], ENT_QUOTES, 'UTF-8'); ?></div>
+                                <div class="tl-desc">Delivery order created and confirmed. Awaiting further status updates.</div>
                             </div>
                         </div>
-                    <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="tl-wrapper">
+                        <div class="tl-line"></div>
+                        <?php foreach ($history as $idx => $update):
+                            $icon_map = [
+                                'Order Received'   => 'clipboard-list',
+                                'Vehicle Assigned' => 'truck',
+                                'Departing'        => 'log-out',
+                                'In Transit'       => 'navigation',
+                                'Arrived'          => 'map-pin',
+                                'Delivered'        => 'badge-check',
+                            ];
+                            $tl_icon = $icon_map[$update['status']] ?? 'circle';
+                            $is_latest = ($idx === 0);
+                        ?>
+                            <div class="tl-step">
+                                <div class="tl-dot <?php echo $is_latest ? 'latest' : ''; ?>">
+                                    <i data-lucide="<?php echo $tl_icon; ?>" style="width: 14px; height: 14px;"></i>
+                                </div>
+                                <div class="tl-body">
+                                    <div class="tl-header">
+                                        <span class="tl-status"><?php echo htmlspecialchars($update['status'], ENT_QUOTES, 'UTF-8'); ?></span>
+                                        <span class="tl-time"><?php echo htmlspecialchars(date('h:i A, M d', strtotime($update['updated_at'])), ENT_QUOTES, 'UTF-8'); ?></span>
+                                    </div>
+                                    <div class="tl-loc">
+                                        <i data-lucide="map-pin" style="width: 12px; height: 12px;"></i>
+                                        <strong style="color: var(--text-primary);"><?php echo htmlspecialchars($update['location'], ENT_QUOTES, 'UTF-8'); ?></strong>
+                                    </div>
+                                    <div class="tl-desc"><?php echo htmlspecialchars($update['description'], ENT_QUOTES, 'UTF-8'); ?></div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <!-- ===== LOG PROGRESS CARD (Admin / Assigned Driver Only) ===== -->
+            <?php if ($can_update): ?>
+            <div class="dashboard-panel" style="padding: 1.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.75rem;">
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); display: flex; align-items: center; justify-content: center; color: #34d399; flex-shrink: 0;">
+                        <i data-lucide="plus-circle" style="width: 18px; height: 18px;"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0;">Log Voyage Progress</h3>
+                        <p style="font-size: 0.75rem; color: var(--text-secondary); margin: 0;">Post new status events and coordinate live route data</p>
+                    </div>
                 </div>
+
+                <form action="track.php?code=<?php echo htmlspecialchars($details['trip_code'], ENT_QUOTES, 'UTF-8'); ?>" method="POST" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    <!-- CSRF Token -->
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCSRFToken(), ENT_QUOTES, 'UTF-8'); ?>">
+                    <input type="hidden" name="trip_id" value="<?php echo htmlspecialchars($details['id'], ENT_QUOTES, 'UTF-8'); ?>">
+                    <input type="hidden" name="trip_code" value="<?php echo htmlspecialchars($details['trip_code'], ENT_QUOTES, 'UTF-8'); ?>">
+                    <input type="hidden" name="log_update" value="1">
+
+                    <div class="form-group">
+                        <label for="status" class="form-label">Tracking Status *</label>
+                        <select id="status" name="status" required class="form-control">
+                            <option value="Order Received" <?php echo $curr_status === 'Order Received' ? 'selected' : ''; ?>>Order Received</option>
+                            <option value="Vehicle Assigned" <?php echo $curr_status === 'Vehicle Assigned' ? 'selected' : ''; ?>>Vehicle Assigned</option>
+                            <option value="Departing" <?php echo $curr_status === 'Departing' ? 'selected' : ''; ?>>Departing</option>
+                            <option value="In Transit" <?php echo $curr_status === 'In Transit' ? 'selected' : ''; ?>>In Transit</option>
+                            <option value="Arrived" <?php echo $curr_status === 'Arrived' ? 'selected' : ''; ?>>Arrived</option>
+                            <option value="Delivered" <?php echo $curr_status === 'Delivered' ? 'selected' : ''; ?>>Delivered (Releases Driver & Vehicle)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location" class="form-label">Current Transit Location *</label>
+                        <input type="text" id="location" name="location" required placeholder="e.g. Suhum Checkpoint, Eastern Region" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description" class="form-label">Voyage Log Description / Notes *</label>
+                        <textarea id="description" name="description" required rows="4" placeholder="Describe delays, rest stops, fuel stops, or POD details..." class="form-control"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="justify-content: center; padding: 0.8rem; margin-top: 0.5rem; border-radius: 8px;">
+                        <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+                        <span>Log Progress Entry</span>
+                    </button>
+                </form>
+            </div>
             <?php endif; ?>
+
+        <?php if ($can_update): ?>
         </div>
+        <?php endif; ?>
 
     </div>
 

@@ -113,12 +113,7 @@ if ($user_role === 'admin') {
                                     <span>Trips & Dispatch</span>
                                 </a>
                             </li>
-                            <li class="<?php echo $current_page === 'update_tracking.php' ? 'active' : ''; ?>">
-                                <a href="update_tracking.php">
-                                    <i data-lucide="activity"></i>
-                                    <span>Update Tracking</span>
-                                </a>
-                            </li>
+
                             <li class="<?php echo $current_page === 'reports.php' ? 'active' : ''; ?>">
                                 <a href="reports.php">
                                     <i data-lucide="trending-up"></i>
@@ -145,12 +140,7 @@ if ($user_role === 'admin') {
                                     <span>My Trips</span>
                                 </a>
                             </li>
-                            <li class="<?php echo $current_page === 'update_tracking.php' ? 'active' : ''; ?>">
-                                <a href="update_tracking.php">
-                                    <i data-lucide="activity"></i>
-                                    <span>Update Status</span>
-                                </a>
-                            </li>
+
                         <?php elseif ($user_role === 'customer'): ?>
                             <!-- Customer Navigation Links -->
                             <li class="<?php echo $current_page === 'customer_dashboard.php' ? 'active' : ''; ?>">

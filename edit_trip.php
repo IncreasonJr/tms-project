@@ -394,7 +394,7 @@ require_once 'includes/header.php';
     </div>
 
     <!-- Link to update tracking page -->
-    <a href="update_tracking.php?trip_id=<?php echo htmlspecialchars($id, ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-secondary" style="display: block; text-align: center; text-decoration: none; margin-top: 15px; width: 220px;">
+    <a href="track.php?code=<?php echo htmlspecialchars($trip['trip_code'], ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-secondary" style="display: block; text-align: center; text-decoration: none; margin-top: 15px; width: 220px;">
         <i data-lucide="activity" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i>
         <span>Update Status Log</span>
     </a>

@@ -329,7 +329,7 @@ function getTrackingByCode($trip_code) {
     $trip_code = trim($trip_code);
     
     if ($db_connected && $conn) {
-        $query = "SELECT t.id, t.trip_code, t.origin, t.destination, t.trip_date, 
+        $query = "SELECT t.id, t.driver_id, t.vehicle_id, t.trip_code, t.origin, t.destination, t.trip_date, 
                          v.vehicle_name, v.license_plate, 
                          d.full_name AS driver_name, d.phone AS driver_phone
                   FROM trips t
@@ -352,6 +352,9 @@ function getTrackingByCode($trip_code) {
                     
                     return [
                         'trip_details' => [
+                            'id' => $trip['id'],
+                            'driver_id' => $trip['driver_id'],
+                            'vehicle_id' => $trip['vehicle_id'],
                             'trip_code' => $trip['trip_code'],
                             'origin' => $trip['origin'],
                             'destination' => $trip['destination'],
@@ -406,6 +409,9 @@ function getTrackingByCode($trip_code) {
             
             return [
                 'trip_details' => [
+                    'id' => $found_trip['id'],
+                    'driver_id' => $found_trip['driver_id'],
+                    'vehicle_id' => $found_trip['vehicle_id'],
                     'trip_code' => $found_trip['trip_code'],
                     'origin' => $found_trip['origin'],
                     'destination' => $found_trip['destination'],
