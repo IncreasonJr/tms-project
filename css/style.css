@@ -1592,10 +1592,160 @@ body.light-theme .tracking-map-node.active .tracking-map-node-label {
 
 
 
-/* --------------------------------------------------------
-   Light Mode Text Overrides
-   All hardcoded "color: white" elements must become dark in light mode
-   -------------------------------------------------------- */
+
+/* ================================================================
+   COMPREHENSIVE LIGHT MODE SYSTEM
+   Overrides ALL hardcoded "color: white" inline styles that would
+   be invisible in light mode. Uses !important to beat inline styles.
+   ================================================================ */
+
+/* ---- Base element colors ---- */
+body.light-theme h1,
+body.light-theme h2,
+body.light-theme h3,
+body.light-theme h4,
+body.light-theme h5,
+body.light-theme h6 {
+    color: #0f172a !important;
+}
+
+body.light-theme p {
+    color: #475569;
+}
+
+/* ---- Sidebar ---- */
+body.light-theme .brand-text h2   { color: #0f172a !important; }
+body.light-theme .user-info h4     { color: #0f172a !important; }
+body.light-theme .avatar-initials  { color: #0f172a !important; }
+body.light-theme .sidebar-nav a    { color: #334155 !important; }
+body.light-theme .sidebar-nav li.active a { color: var(--accent-blue) !important; }
+body.light-theme .sidebar-nav a:hover     { color: var(--accent-blue) !important; background-color: rgba(37,99,235,0.08); }
+body.light-theme .logout-link:hover       { color: #ef4444 !important; }
+
+/* ---- Header ---- */
+body.light-theme .header-title { color: #0f172a !important; }
+body.light-theme .header-widget { background: rgba(15,23,42,0.06); border-color: rgba(15,23,42,0.1); color: #334155 !important; }
+body.light-theme .header-widget span,
+body.light-theme .header-widget strong { color: #334155 !important; }
+
+/* ---- Panels & Cards ---- */
+body.light-theme .dashboard-panel  { background: rgba(255,255,255,0.88); border-color: rgba(15,23,42,0.09); }
+body.light-theme .glass-container  { background: rgba(255,255,255,0.88) !important; border-color: rgba(15,23,42,0.09); }
+body.light-theme .kpi-card          { background: rgba(255,255,255,0.8); border-color: rgba(15,23,42,0.09); }
+body.light-theme .kpi-value         { color: #0f172a !important; }
+body.light-theme .kpi-content h3    { color: #64748b; }
+
+/* ---- Stat Cards ---- */
+body.light-theme .stat-value  { color: #0f172a !important; }
+body.light-theme .stat-label  { color: #475569 !important; }
+
+/* ---- Dashboard Stat Cards (gradient numbers) ---- */
+body.light-theme .dash-stat-number {
+    -webkit-text-fill-color: var(--accent-blue) !important;
+    background-image: none !important;
+    color: var(--accent-blue) !important;
+}
+body.light-theme .dash-stat-label  { color: #475569 !important; }
+body.light-theme .dash-stat-footer { color: #64748b !important; }
+
+/* ---- Page Titles & Subtitles ---- */
+body.light-theme .page-title        { color: #0f172a !important; }
+body.light-theme .panel-header h3,
+body.light-theme .panel-title       { color: #0f172a !important; }
+
+/* ---- Tables ---- */
+body.light-theme .tms-table thead          { background: rgba(15,23,42,0.05); }
+body.light-theme .tms-table thead th       { color: #1e293b !important; font-weight: 700; }
+body.light-theme .tms-table tbody td       { color: #334155 !important; border-bottom-color: rgba(15,23,42,0.06); }
+body.light-theme .tms-table tbody tr:hover { background: rgba(15,23,42,0.03); }
+body.light-theme .tms-table tbody strong   { color: #4338ca !important; }
+body.light-theme .tms-table td a           { color: var(--accent-blue) !important; }
+
+/* ---- Forms ---- */
+body.light-theme .form-label    { color: #334155 !important; }
+body.light-theme .form-control  {
+    background: rgba(255,255,255,0.95) !important;
+    border-color: rgba(15,23,42,0.15) !important;
+    color: #0f172a !important;
+}
+body.light-theme .form-control::placeholder { color: #94a3b8; }
+body.light-theme select.form-control option  { background: #fff; color: #0f172a; }
+
+/* ---- Buttons ---- */
+body.light-theme .btn-primary { color: #ffffff !important; }
+body.light-theme .btn-danger  { color: #ffffff !important; }
+body.light-theme .btn-secondary { color: #334155 !important; border-color: rgba(15,23,42,0.15); background: rgba(255,255,255,0.7); }
+
+/* ---- Inline white text overrides (the main culprit) ---- */
+/* Targets any element with hardcoded style="color: white" inside the app layout */
+body.light-theme .content-viewport [style*="color: white"],
+body.light-theme .content-viewport [style*="color:white"] {
+    color: #0f172a !important;
+}
+
+/* But keep white text inside coloured buttons and badges */
+body.light-theme .btn-primary [style*="color: white"],
+body.light-theme .btn-danger  [style*="color: white"],
+body.light-theme .badge       [style*="color: white"] {
+    color: inherit !important;
+}
+
+/* ---- Welcome banners ---- */
+body.light-theme .content-viewport > div[style*="linear-gradient"] h2 { color: #0f172a !important; }
+body.light-theme .content-viewport > div[style*="linear-gradient"] p  { color: #475569 !important; }
+
+/* ---- Recent updates / activity ---- */
+body.light-theme h3[style*="color: white"],
+body.light-theme h4[style*="color: white"] { color: #0f172a !important; }
+
+body.light-theme span[style*="color: white"],
+body.light-theme strong[style*="color: white"],
+body.light-theme div[style*="color: white"] { color: #0f172a !important; }
+
+/* Exception: keep white text on coloured icon boxes */
+body.light-theme .dash-stat-icon [style*="color: white"],
+body.light-theme .feature-icon-wrapper [style*="color: white"] {
+    color: inherit !important;
+}
+
+/* ---- Modal ---- */
+body.light-theme #custom-confirm-modal .modal-content {
+    background: rgba(255,255,255,0.98) !important;
+    border-color: rgba(15,23,42,0.1) !important;
+}
+body.light-theme #confirm-modal-title   { color: #0f172a !important; }
+body.light-theme #confirm-modal-message { color: #475569 !important; }
+
+/* ---- Driver dashboard cards ---- */
+body.light-theme [style*="color: var(--text-primary)"] { color: #0f172a !important; }
+
+/* ---- Timeline (track.php) ---- */
+body.light-theme .tl-status { color: #0f172a !important; }
+body.light-theme .tl-loc    { color: #475569 !important; }
+body.light-theme .tl-desc   { color: #64748b !important; }
+body.light-theme .tl-body   { background: rgba(15,23,42,0.03) !important; border-color: rgba(15,23,42,0.07) !important; }
+body.light-theme .tl-dot    { background: #f8fafc !important; border-color: rgba(15,23,42,0.12) !important; color: var(--accent-blue) !important; }
+body.light-theme .info-card { background: rgba(15,23,42,0.03) !important; border-color: rgba(15,23,42,0.08) !important; }
+body.light-theme .info-card-label { color: #64748b !important; }
+body.light-theme .info-card-value { color: #0f172a !important; }
+body.light-theme .route-visual {
+    background: rgba(255,255,255,0.9) !important;
+    border-color: rgba(59,130,246,0.15) !important;
+}
+body.light-theme .road-track { background: rgba(15,23,42,0.08) !important; }
+body.light-theme .stage-node-label { color: #94a3b8; }
+body.light-theme .stage-node.done .stage-node-label  { color: #059669 !important; }
+body.light-theme .stage-node.active .stage-node-label { color: #0f172a !important; }
+body.light-theme .stage-node-dot { background: rgba(15,23,42,0.04) !important; border-color: rgba(15,23,42,0.1) !important; color: #64748b !important; }
+body.light-theme .stage-node.done .stage-node-dot  { background: rgba(5,150,105,0.08) !important; border-color: #10b981 !important; color: #059669 !important; }
+
+/* ---- Trips/Drivers/Vehicles tables: route text ---- */
+body.light-theme .tms-table td span[style*="color: white"],
+body.light-theme .tms-table td div[style*="color: white"] { color: #0f172a !important; }
+
+/* ---- Footer ---- */
+body.light-theme .main-footer { color: #64748b; }
+
 body.light-theme .brand-text h2,
 body.light-theme .user-info h4,
 body.light-theme .avatar-initials,

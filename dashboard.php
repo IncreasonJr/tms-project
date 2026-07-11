@@ -240,11 +240,11 @@ require_once 'includes/header.php';
 
     <!-- Card 1: Fleet Vehicles (Indigo/Purple) -->
     <div class="dash-stat-card" style="
-        background: linear-gradient(145deg, rgba(30,41,67,0.6) 0%, rgba(15,23,42,0.4) 100%);
-        border: 1px solid rgba(255,255,255,0.1);
-        box-shadow: 0 4px 24px rgba(0,0,0,0.25);
-    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(0,0,0,0.4)'; this.style.borderColor='rgba(255,255,255,0.2)'"
-       onmouseleave="this.style.boxShadow='0 4px 24px rgba(0,0,0,0.25)'; this.style.borderColor='rgba(255,255,255,0.1)'">
+        background: linear-gradient(145deg, rgba(99,102,241,0.2) 0%, rgba(139,92,246,0.08) 100%);
+        border: 1px solid rgba(99,102,241,0.35);
+        box-shadow: 0 4px 24px rgba(99,102,241,0.12);
+    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(99,102,241,0.3)'; this.style.borderColor='rgba(99,102,241,0.6)'"
+       onmouseleave="this.style.boxShadow='0 4px 24px rgba(99,102,241,0.12)'; this.style.borderColor='rgba(99,102,241,0.35)'">
         <div class="dash-stat-icon" style="background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc;">
             <i data-lucide="truck" style="width: 24px; height: 24px;"></i>
         </div>
@@ -262,11 +262,11 @@ require_once 'includes/header.php';
 
     <!-- Card 2: Registered Drivers (Emerald) -->
     <div class="dash-stat-card" style="
-        background: linear-gradient(145deg, rgba(30,41,67,0.6) 0%, rgba(15,23,42,0.4) 100%);
-        border: 1px solid rgba(255,255,255,0.1);
-        box-shadow: 0 4px 24px rgba(0,0,0,0.25);
-    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(0,0,0,0.4)'; this.style.borderColor='rgba(255,255,255,0.2)'"
-       onmouseleave="this.style.boxShadow='0 4px 24px rgba(0,0,0,0.25)'; this.style.borderColor='rgba(255,255,255,0.1)'">
+        background: linear-gradient(145deg, rgba(16,185,129,0.2) 0%, rgba(5,150,105,0.08) 100%);
+        border: 1px solid rgba(16,185,129,0.35);
+        box-shadow: 0 4px 24px rgba(16,185,129,0.12);
+    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(16,185,129,0.3)'; this.style.borderColor='rgba(16,185,129,0.6)'"
+       onmouseleave="this.style.boxShadow='0 4px 24px rgba(16,185,129,0.12)'; this.style.borderColor='rgba(16,185,129,0.35)'">
         <div class="dash-stat-icon" style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7;">
             <i data-lucide="users" style="width: 24px; height: 24px;"></i>
         </div>
@@ -284,11 +284,11 @@ require_once 'includes/header.php';
 
     <!-- Card 3: Today's Dispatch (Amber) -->
     <div class="dash-stat-card" style="
-        background: linear-gradient(145deg, rgba(30,41,67,0.6) 0%, rgba(15,23,42,0.4) 100%);
-        border: 1px solid rgba(255,255,255,0.1);
-        box-shadow: 0 4px 24px rgba(0,0,0,0.25);
-    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(0,0,0,0.4)'; this.style.borderColor='rgba(255,255,255,0.2)'"
-       onmouseleave="this.style.boxShadow='0 4px 24px rgba(0,0,0,0.25)'; this.style.borderColor='rgba(255,255,255,0.1)'">
+        background: linear-gradient(145deg, rgba(245,158,11,0.2) 0%, rgba(217,119,6,0.08) 100%);
+        border: 1px solid rgba(245,158,11,0.35);
+        box-shadow: 0 4px 24px rgba(245,158,11,0.12);
+    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(245,158,11,0.3)'; this.style.borderColor='rgba(245,158,11,0.6)'"
+       onmouseleave="this.style.boxShadow='0 4px 24px rgba(245,158,11,0.12)'; this.style.borderColor='rgba(245,158,11,0.35)'">
         <div class="dash-stat-icon" style="background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.3); color: #fde68a;">
             <i data-lucide="calendar-check" style="width: 24px; height: 24px;"></i>
         </div>
@@ -306,11 +306,11 @@ require_once 'includes/header.php';
 
     <!-- Card 4: Total Trips (Blue) -->
     <div class="dash-stat-card" style="
-        background: linear-gradient(145deg, rgba(30,41,67,0.6) 0%, rgba(15,23,42,0.4) 100%);
-        border: 1px solid rgba(255,255,255,0.1);
-        box-shadow: 0 4px 24px rgba(0,0,0,0.25);
-    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(0,0,0,0.4)'; this.style.borderColor='rgba(255,255,255,0.2)'"
-       onmouseleave="this.style.boxShadow='0 4px 24px rgba(0,0,0,0.25)'; this.style.borderColor='rgba(255,255,255,0.1)'">
+        background: linear-gradient(145deg, rgba(59,130,246,0.2) 0%, rgba(37,99,235,0.08) 100%);
+        border: 1px solid rgba(59,130,246,0.35);
+        box-shadow: 0 4px 24px rgba(59,130,246,0.12);
+    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(59,130,246,0.3)'; this.style.borderColor='rgba(59,130,246,0.6)'"
+       onmouseleave="this.style.boxShadow='0 4px 24px rgba(59,130,246,0.12)'; this.style.borderColor='rgba(59,130,246,0.35)'">
         <div class="dash-stat-icon" style="background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd;">
             <i data-lucide="navigation" style="width: 24px; height: 24px;"></i>
         </div>
