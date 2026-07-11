@@ -226,8 +226,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const type = urlParams.get('type') || 'success';
         window.showToast(msg, type);
         
-        // Clean query parameters from URL history without reloading
-        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        // Clean only 'msg' and 'type' query parameters from URL history without reloading
+        urlParams.delete('msg');
+        urlParams.delete('type');
+        const newSearch = urlParams.toString();
+        const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + (newSearch ? '?' + newSearch : '');
         window.history.replaceState({path: cleanUrl}, '', cleanUrl);
     }
 });
