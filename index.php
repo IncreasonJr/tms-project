@@ -211,7 +211,7 @@ if ($is_logged_in) {
                         <span>Registered Drivers</span>
                     </div>
                     <div class="stat-row-item">
-                        <strong style="background: linear-gradient(135deg, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">100%</strong>
+                        <strong class="lp-count" data-target="100" data-suffix="%" style="background: linear-gradient(135deg, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">100%</strong>
                         <span>Live Tracking</span>
                     </div>
                     <div class="stat-row-item">
