@@ -29,6 +29,7 @@ $completed_trips = 0;
 $maintenance_count = 0;
 
 $recent_updates = [];
+$pending_requests = [];
 
 if ($db_connected && $conn) {
     // Total Vehicles
@@ -74,6 +75,17 @@ if ($db_connected && $conn) {
             $recent_updates[] = $row;
         }
         mysqli_free_result($r_res);
+    }
+    // Fetch pending customer requests
+    $req_query = "SELECT t.*, a.fullname AS customer_name FROM trips t 
+                  LEFT JOIN admins a ON t.customer_id = a.id 
+                  WHERE t.status = 'pending' 
+                  ORDER BY t.id DESC LIMIT 5";
+    if ($req_res = mysqli_query($conn, $req_query)) {
+        while ($row = mysqli_fetch_assoc($req_res)) {
+            $pending_requests[] = $row;
+        }
+        mysqli_free_result($req_res);
     }
 } else {
     // Simulation Mode stats
@@ -122,6 +134,21 @@ if ($db_connected && $conn) {
                 'description' => $update['description'],
                 'updated_at' => $update['created_at']
             ];
+        }
+    }
+    
+    // Fetch pending customer requests (simulation)
+    if (isset($_SESSION['mock_trips'])) {
+        foreach ($_SESSION['mock_trips'] as $t) {
+            if ($t['status'] === 'pending') {
+                $c_name = 'Customer Account';
+                if (isset($t['customer_id'])) {
+                    if ($t['customer_id'] == 4) {
+                        $c_name = 'Acme Corp Customer';
+                    }
+                }
+                $pending_requests[] = array_merge($t, ['customer_name' => $c_name]);
+            }
         }
     }
 }
@@ -353,6 +380,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <!-- Status Breakdowns and Updates -->
 <div style="display: grid; grid-template-columns: 1fr; gap: 30px; margin-top: 2rem;">
+    
+    <!-- Row 0: Pending Customer Delivery Requests -->
+    <div class="dashboard-panel" style="margin-bottom: 0;">
+        <div class="panel-header" style="padding: 1.5rem 1.5rem 0.5rem 1.5rem; border-bottom: none;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.25); display: flex; align-items: center; justify-content: center; color: #fbbf24; flex-shrink: 0;">
+                    <i data-lucide="inbox" style="width: 18px; height: 18px;"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 1.1rem; font-weight: 700; color: white; margin: 0 0 0.15rem 0;">Pending Delivery Requests</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0;">Review pending customer booking requests and assign logistics carriers</p>
+                </div>
+            </div>
+        </div>
+        <div class="table-container" style="padding: 0 1.5rem 1.5rem 1.5rem;">
+            <table class="tms-table">
+                <thead>
+                    <tr>
+                        <th>Trip Code</th>
+                        <th>Customer</th>
+                        <th>Route</th>
+                        <th>Requested Date</th>
+                        <th>Cargo Details</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($pending_requests)): ?>
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-secondary);">No pending customer delivery requests at the moment.</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($pending_requests as $req): ?>
+                            <tr>
+                                <td><strong style="color: #fbbf24; font-family: monospace; font-size: 0.95rem;"><?php echo htmlspecialchars($req['trip_code'], ENT_QUOTES, 'UTF-8'); ?></strong></td>
+                                <td><span style="color: white; font-weight: 600;"><?php echo htmlspecialchars($req['customer_name'] ?: 'External Booking', ENT_QUOTES, 'UTF-8'); ?></span></td>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                        <span><?php echo htmlspecialchars(explode(',', $req['origin'])[0], ENT_QUOTES, 'UTF-8'); ?></span>
+                                        <i data-lucide="arrow-right" style="width: 10px; height: 10px; color: var(--text-muted);"></i>
+                                        <span><?php echo htmlspecialchars(explode(',', $req['destination'])[0], ENT_QUOTES, 'UTF-8'); ?></span>
+                                    </div>
+                                </td>
+                                <td><?php echo htmlspecialchars(date('M d, Y', strtotime($req['trip_date'])), ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<?php echo htmlspecialchars($req['purpose'] ?: '', ENT_QUOTES, 'UTF-8'); ?>">
+                                    <?php echo htmlspecialchars($req['purpose'] ?: '—', ENT_QUOTES, 'UTF-8'); ?>
+                                </td>
+                                <td style="text-align: right;">
+                                    <a href="edit_trip.php?id=<?php echo $req['id']; ?>" class="btn btn-sm btn-warning" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; font-weight: 700; border-radius: 6px;">
+                                        <i data-lucide="edit-3" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 4px;"></i>Confirm & Assign
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
     
     <!-- Row 1: Recent Tracking Updates -->
     <div class="dashboard-panel" style="margin-bottom: 0;">

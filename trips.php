@@ -150,14 +150,19 @@ require_once 'includes/header.php';
                 <?php else: ?>
                     <?php foreach ($trips as $trip): ?>
                         <?php
-                        $vehicle_info = '';
-                        if (isset($trip['vehicle_name'])) {
+                        $vehicle_info = 'Not Assigned';
+                        if (isset($trip['vehicle_name']) && !empty($trip['vehicle_name'])) {
                             $vehicle_info = $trip['vehicle_name'] . (isset($trip['license_plate']) ? ' (' . $trip['license_plate'] . ')' : '');
-                        } else {
+                        } elseif (isset($trip['vehicle_id']) && $trip['vehicle_id']) {
                             $vehicle_info = get_vehicle_name($trip['vehicle_id']);
                         }
                         
-                        $driver_info = isset($trip['driver_name']) ? $trip['driver_name'] : get_driver_name($trip['driver_id']);
+                        $driver_info = 'Not Assigned';
+                        if (isset($trip['driver_name']) && !empty($trip['driver_name'])) {
+                            $driver_info = $trip['driver_name'];
+                        } elseif (isset($trip['driver_id']) && $trip['driver_id']) {
+                            $driver_info = get_driver_name($trip['driver_id']);
+                        }
                         $dispatcher_name = isset($trip['creator_name']) ? $trip['creator_name'] : 'System Dispatcher';
                         ?>
                         <tr>

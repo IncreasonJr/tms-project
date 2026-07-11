@@ -210,6 +210,47 @@ function insert_trip($trip_code, $trip_date, $origin, $destination, $purpose, $v
     }
 }
 
+// Insert customer trip request
+function insert_customer_trip($trip_code, $trip_date, $origin, $destination, $purpose, $customer_id) {
+    global $conn, $db_connected;
+    
+    $trip_code = sanitize_input($trip_code);
+    $trip_date = sanitize_input($trip_date);
+    $origin = sanitize_input($origin);
+    $destination = sanitize_input($destination);
+    $purpose = sanitize_input($purpose);
+    $customer_id = intval($customer_id);
+    
+    if ($db_connected && $conn) {
+        $sql = "INSERT INTO trips (trip_code, trip_date, origin, destination, purpose, vehicle_id, driver_id, status, created_by, customer_id) 
+                VALUES (?, ?, ?, ?, ?, NULL, NULL, 'pending', 1, ?)";
+        if ($stmt = mysqli_prepare($conn, $sql)) {
+            mysqli_stmt_bind_param($stmt, "sssssi", $trip_code, $trip_date, $origin, $destination, $purpose, $customer_id);
+            $success = mysqli_stmt_execute($stmt);
+            mysqli_stmt_close($stmt);
+            return $success;
+        }
+        return false;
+    } else {
+        $new_id = empty($_SESSION['mock_trips']) ? 1 : max(array_keys($_SESSION['mock_trips'])) + 1;
+        $_SESSION['mock_trips'][$new_id] = [
+            'id' => $new_id,
+            'trip_code' => $trip_code,
+            'trip_date' => $trip_date,
+            'origin' => $origin,
+            'destination' => $destination,
+            'purpose' => $purpose,
+            'vehicle_id' => null,
+            'driver_id' => null,
+            'status' => 'pending',
+            'created_by' => 1,
+            'customer_id' => $customer_id
+        ];
+        return true;
+    }
+}
+
+
 // Update trip status and details
 function update_trip($id, $trip_date, $origin, $destination, $purpose, $vehicle_id, $driver_id, $status) {
     global $conn, $db_connected;
