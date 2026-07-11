@@ -144,52 +144,228 @@ require_once 'includes/header.php';
     <p style="font-size: 0.9rem; color: var(--text-secondary);">Here is the real-time operational status of the transportation fleet for today.</p>
 </div>
 
-<!-- Stat Grid Dashboard -->
-<div class="stats-grid">
-    <!-- Stat Card: Vehicles -->
-    <div class="stat-card">
-        <div class="stat-icon-container" style="background-color: rgba(99, 102, 241, 0.1); color: #818cf8;">
-            <i data-lucide="truck"></i>
+<!-- Premium Animated Stats Grid -->
+<style>
+@keyframes cardEntrance {
+    from { opacity: 0; transform: translateY(24px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes numberPop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+@keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+@keyframes pulse-ring {
+    0%   { transform: scale(0.95); opacity: 0.6; }
+    70%  { transform: scale(1.15); opacity: 0; }
+    100% { transform: scale(0.95); opacity: 0; }
+}
+.dash-stat-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 22px;
+    padding: 2rem 1.75rem;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    cursor: default;
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1),
+                box-shadow 0.35s ease,
+                border-color 0.35s ease;
+    animation: cardEntrance 0.55s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.dash-stat-card:nth-child(1) { animation-delay: 0.05s; }
+.dash-stat-card:nth-child(2) { animation-delay: 0.12s; }
+.dash-stat-card:nth-child(3) { animation-delay: 0.19s; }
+.dash-stat-card:nth-child(4) { animation-delay: 0.26s; }
+.dash-stat-card:hover {
+    transform: translateY(-8px) scale(1.02);
+}
+.dash-stat-card:hover .dash-stat-number {
+    animation: numberPop 0.4s ease;
+}
+.dash-stat-number {
+    font-size: 3.25rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    display: block;
+    margin-bottom: 0.5rem;
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.dash-stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+.dash-stat-icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    animation: pulse-ring 2.5s ease-out infinite;
+}
+.dash-stat-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.75;
+}
+.dash-stat-divider {
+    height: 1px;
+    margin: 1.25rem 0;
+    opacity: 0.15;
+}
+.dash-stat-footer {
+    font-size: 0.72rem;
+    font-weight: 500;
+    opacity: 0.6;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.dash-stat-blob {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    filter: blur(40px);
+    bottom: -30px;
+    right: -30px;
+    pointer-events: none;
+}
+</style>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem;">
+
+    <!-- Card 1: Fleet Vehicles (Indigo/Purple) -->
+    <div class="dash-stat-card" style="
+        background: linear-gradient(145deg, rgba(99,102,241,0.2) 0%, rgba(139,92,246,0.08) 100%);
+        border: 1px solid rgba(99,102,241,0.35);
+        box-shadow: 0 4px 24px rgba(99,102,241,0.12);
+    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(99,102,241,0.3)'; this.style.borderColor='rgba(99,102,241,0.6)'"
+       onmouseleave="this.style.boxShadow='0 4px 24px rgba(99,102,241,0.12)'; this.style.borderColor='rgba(99,102,241,0.35)'">
+        <div class="dash-stat-icon" style="background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc;">
+            <i data-lucide="truck" style="width: 24px; height: 24px;"></i>
+            <div style="position:absolute;inset:0;border-radius:14px;animation:pulse-ring 2.5s ease-out infinite;background:rgba(99,102,241,0.3);"></div>
         </div>
-        <div class="stat-details">
-            <span class="stat-value"><?php echo number_format($total_vehicles); ?></span>
-            <span class="stat-label">Total Fleet Vehicles</span>
+        <span class="dash-stat-number" data-target="<?php echo $total_vehicles; ?>" style="background-image: linear-gradient(135deg, #a5b4fc 0%, #818cf8 50%, #6366f1 100%);">
+            <?php echo number_format($total_vehicles); ?>
+        </span>
+        <div class="dash-stat-label" style="color: #a5b4fc;">Total Fleet Vehicles</div>
+        <div class="dash-stat-divider" style="background: #818cf8;"></div>
+        <div class="dash-stat-footer" style="color: #a5b4fc;">
+            <i data-lucide="activity" style="width: 12px; height: 12px;"></i>
+            <span>Registered in fleet registry</span>
         </div>
+        <div class="dash-stat-blob" style="background: rgba(99,102,241,0.25);"></div>
     </div>
 
-    <!-- Stat Card: Drivers -->
-    <div class="stat-card">
-        <div class="stat-icon-container" style="background-color: rgba(16, 185, 129, 0.1); color: #34d399;">
-            <i data-lucide="users"></i>
+    <!-- Card 2: Registered Drivers (Emerald) -->
+    <div class="dash-stat-card" style="
+        background: linear-gradient(145deg, rgba(16,185,129,0.2) 0%, rgba(5,150,105,0.08) 100%);
+        border: 1px solid rgba(16,185,129,0.35);
+        box-shadow: 0 4px 24px rgba(16,185,129,0.12);
+    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(16,185,129,0.3)'; this.style.borderColor='rgba(16,185,129,0.6)'"
+       onmouseleave="this.style.boxShadow='0 4px 24px rgba(16,185,129,0.12)'; this.style.borderColor='rgba(16,185,129,0.35)'">
+        <div class="dash-stat-icon" style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7;">
+            <i data-lucide="users" style="width: 24px; height: 24px;"></i>
+            <div style="position:absolute;inset:0;border-radius:14px;animation:pulse-ring 2.5s ease-out infinite 0.6s;background:rgba(16,185,129,0.3);"></div>
         </div>
-        <div class="stat-details">
-            <span class="stat-value"><?php echo number_format($total_drivers); ?></span>
-            <span class="stat-label">Registered Drivers</span>
+        <span class="dash-stat-number" data-target="<?php echo $total_drivers; ?>" style="background-image: linear-gradient(135deg, #6ee7b7 0%, #34d399 50%, #10b981 100%);">
+            <?php echo number_format($total_drivers); ?>
+        </span>
+        <div class="dash-stat-label" style="color: #6ee7b7;">Registered Drivers</div>
+        <div class="dash-stat-divider" style="background: #34d399;"></div>
+        <div class="dash-stat-footer" style="color: #6ee7b7;">
+            <i data-lucide="shield-check" style="width: 12px; height: 12px;"></i>
+            <span>Licensed &amp; active personnel</span>
         </div>
+        <div class="dash-stat-blob" style="background: rgba(16,185,129,0.2);"></div>
     </div>
 
-    <!-- Stat Card: Today's Dispatch -->
-    <div class="stat-card">
-        <div class="stat-icon-container" style="background-color: rgba(245, 158, 11, 0.1); color: #fbbf24;">
-            <i data-lucide="calendar"></i>
+    <!-- Card 3: Today's Dispatch (Amber) -->
+    <div class="dash-stat-card" style="
+        background: linear-gradient(145deg, rgba(245,158,11,0.2) 0%, rgba(217,119,6,0.08) 100%);
+        border: 1px solid rgba(245,158,11,0.35);
+        box-shadow: 0 4px 24px rgba(245,158,11,0.12);
+    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(245,158,11,0.3)'; this.style.borderColor='rgba(245,158,11,0.6)'"
+       onmouseleave="this.style.boxShadow='0 4px 24px rgba(245,158,11,0.12)'; this.style.borderColor='rgba(245,158,11,0.35)'">
+        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.3); color: #fde68a;">
+            <i data-lucide="calendar-check" style="width: 24px; height: 24px;"></i>
+            <div style="position:absolute;inset:0;border-radius:14px;animation:pulse-ring 2.5s ease-out infinite 1.2s;background:rgba(245,158,11,0.3);"></div>
         </div>
-        <div class="stat-details">
-            <span class="stat-value"><?php echo number_format($today_trips); ?></span>
-            <span class="stat-label">Today's Dispatch Route</span>
+        <span class="dash-stat-number" data-target="<?php echo $today_trips; ?>" style="background-image: linear-gradient(135deg, #fde68a 0%, #fbbf24 50%, #f59e0b 100%);">
+            <?php echo number_format($today_trips); ?>
+        </span>
+        <div class="dash-stat-label" style="color: #fde68a;">Today's Dispatch Route</div>
+        <div class="dash-stat-divider" style="background: #fbbf24;"></div>
+        <div class="dash-stat-footer" style="color: #fde68a;">
+            <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
+            <span><?php echo date('D, M d Y'); ?></span>
         </div>
+        <div class="dash-stat-blob" style="background: rgba(245,158,11,0.2);"></div>
     </div>
 
-    <!-- Stat Card: Total Trips -->
-    <div class="stat-card">
-        <div class="stat-icon-container" style="background-color: rgba(59, 130, 246, 0.1); color: #60a5fa;">
-            <i data-lucide="navigation"></i>
+    <!-- Card 4: Total Trips (Blue) -->
+    <div class="dash-stat-card" style="
+        background: linear-gradient(145deg, rgba(59,130,246,0.2) 0%, rgba(37,99,235,0.08) 100%);
+        border: 1px solid rgba(59,130,246,0.35);
+        box-shadow: 0 4px 24px rgba(59,130,246,0.12);
+    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(59,130,246,0.3)'; this.style.borderColor='rgba(59,130,246,0.6)'"
+       onmouseleave="this.style.boxShadow='0 4px 24px rgba(59,130,246,0.12)'; this.style.borderColor='rgba(59,130,246,0.35)'">
+        <div class="dash-stat-icon" style="background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd;">
+            <i data-lucide="navigation" style="width: 24px; height: 24px;"></i>
+            <div style="position:absolute;inset:0;border-radius:14px;animation:pulse-ring 2.5s ease-out infinite 1.8s;background:rgba(59,130,246,0.3);"></div>
         </div>
-        <div class="stat-details">
-            <span class="stat-value"><?php echo number_format($total_trips); ?></span>
-            <span class="stat-label">Total Booked Trips</span>
+        <span class="dash-stat-number" data-target="<?php echo $total_trips; ?>" style="background-image: linear-gradient(135deg, #93c5fd 0%, #60a5fa 50%, #3b82f6 100%);">
+            <?php echo number_format($total_trips); ?>
+        </span>
+        <div class="dash-stat-label" style="color: #93c5fd;">Total Booked Trips</div>
+        <div class="dash-stat-divider" style="background: #60a5fa;"></div>
+        <div class="dash-stat-footer" style="color: #93c5fd;">
+            <i data-lucide="bar-chart-2" style="width: 12px; height: 12px;"></i>
+            <span>All dispatched routes</span>
         </div>
+        <div class="dash-stat-blob" style="background: rgba(59,130,246,0.2);"></div>
     </div>
+
 </div>
+
+<script>
+// Count-up animation for stat numbers
+document.addEventListener('DOMContentLoaded', () => {
+    const counters = document.querySelectorAll('.dash-stat-number[data-target]');
+    counters.forEach(el => {
+        const target = parseInt(el.getAttribute('data-target'), 10);
+        if (isNaN(target) || target === 0) return;
+        let start = 0;
+        const duration = 900;
+        const step = Math.ceil(target / (duration / 16));
+        const timer = setInterval(() => {
+            start += step;
+            if (start >= target) {
+                start = target;
+                clearInterval(timer);
+            }
+            el.textContent = start.toLocaleString();
+        }, 16);
+    });
+});
+</script>
+
 
 <!-- Status Breakdowns and Updates -->
 <div style="display: grid; grid-template-columns: 1fr; gap: 30px; margin-top: 2rem;">
