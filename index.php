@@ -320,22 +320,10 @@ if ($is_logged_in) {
                 }, 16);
             };
 
-            // Trigger count-up when stat row becomes visible
-            const statRow = document.querySelector('.stat-row');
-            if (statRow) {
-                const observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            document.querySelectorAll('.lp-count').forEach(animateCounter);
-                            observer.disconnect();
-                        }
-                    });
-                }, { threshold: 0.3 });
-                observer.observe(statRow);
-            } else {
-                // Trigger immediately on small pages
-                setTimeout(() => document.querySelectorAll('.lp-count').forEach(animateCounter), 400);
-            }
+            // Trigger count-up on load after a short delay to sync with animations
+            setTimeout(() => {
+                document.querySelectorAll('.lp-count').forEach(animateCounter);
+            }, 300);
         });
     </script>
 </body>

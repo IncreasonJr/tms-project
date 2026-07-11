@@ -1013,13 +1013,18 @@ body {
 
 @media (max-width: 768px) {
     .form-grid {
-        grid-template-cols: 1fr;
+        grid-template-columns: 1fr;
     }
     .form-group.full-width {
         grid-column: span 1;
     }
     .dashboard-row {
-        grid-template-cols: 1fr;
+        grid-template-columns: 1fr;
+    }
+    #customer-dashboard-grid, 
+    #track-panels-grid, 
+    #map-dashboard-grid {
+        grid-template-columns: 1fr !important;
     }
     .content-viewport {
         padding: 1.25rem;
