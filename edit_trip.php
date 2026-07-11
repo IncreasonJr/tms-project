@@ -150,12 +150,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Commit/Rollback
                 if ($transaction_success) {
                     mysqli_commit($conn);
-                    $success = "Trip schedule updated successfully!";
-                    // Reload data
-                    $trip = getTripById($id);
-                    $old_vehicle_id = isset($trip['vehicle_id']) ? intval($trip['vehicle_id']) : null;
-                    $old_driver_id = isset($trip['driver_id']) ? intval($trip['driver_id']) : null;
-                    $old_status = isset($trip['status']) ? $trip['status'] : 'pending';
+                    header("Location: trips.php?msg=Trip+schedule+updated+successfully!");
+                    exit();
                 } else {
                     mysqli_rollback($conn);
                 }
@@ -163,12 +159,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Simulation Mode
                 $success_sim = update_trip($id, $trip_date, $origin, $destination, $purpose, $vehicle_id, $driver_id, $status);
                 if ($success_sim) {
-                    $success = "Trip schedule updated successfully!";
-                    // Reload mock data
-                    $trip = get_trip_by_id($id);
-                    $old_vehicle_id = isset($trip['vehicle_id']) ? intval($trip['vehicle_id']) : null;
-                    $old_driver_id = isset($trip['driver_id']) ? intval($trip['driver_id']) : null;
-                    $old_status = isset($trip['status']) ? $trip['status'] : 'pending';
+                    header("Location: trips.php?msg=Trip+schedule+updated+successfully!");
+                    exit();
                 } else {
                     $error = 'Failed to update trip in simulation mode.';
                 }

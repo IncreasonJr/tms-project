@@ -111,6 +111,14 @@ $page_title = "Trips";
 require_once 'includes/header.php';
 ?>
 
+<!-- Message Notification Banner -->
+<?php if (isset($_GET['msg'])): ?>
+    <div class="alert alert-success" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #a7f3d0; padding: 14px 16px; border-radius: 10px; margin-bottom: 2rem;">
+        <i data-lucide="check-circle" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+        <?php echo htmlspecialchars($_GET['msg'], ENT_QUOTES, 'UTF-8'); ?>
+    </div>
+<?php endif; ?>
+
 <!-- Header Section with Actions -->
 <div class="panel-header" style="margin-bottom: 2rem;">
     <div>

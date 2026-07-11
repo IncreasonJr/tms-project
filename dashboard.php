@@ -440,60 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     </div>
     
-    <!-- Row 1: Recent Tracking Updates -->
-    <div class="dashboard-panel" style="margin-bottom: 0;">
-        <div class="panel-header" style="padding: 1.5rem 1.5rem 0.5rem 1.5rem; border-bottom: none;">
-            <div>
-                <h3 style="font-size: 1.1rem; font-weight: 700; color: white; margin-bottom: 0.25rem;">Live Delivery Updates</h3>
-                <p style="font-size: 0.8rem; color: var(--text-secondary);">Latest shipment progress logs across all active transit routes</p>
-            </div>
-        </div>
-        <div class="table-container" style="padding: 0 1.5rem 1.5rem 1.5rem;">
-            <table class="tms-table">
-                <thead>
-                    <tr>
-                        <th>Trip Code</th>
-                        <th>Status</th>
-                        <th>Location</th>
-                        <th style="text-align: right;">Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($recent_updates)): ?>
-                        <tr>
-                            <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-secondary);">No tracking status updates logged yet.</td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($recent_updates as $update): ?>
-                            <tr>
-                                <td><strong style="color: #8b5cf6; font-family: monospace; font-size: 0.95rem;"><?php echo htmlspecialchars($update['trip_code'], ENT_QUOTES, 'UTF-8'); ?></strong></td>
-                                <td>
-                                    <?php
-                                    $status = $update['status'];
-                                    $badge_style = "background: rgba(139, 92, 246, 0.15); color: #c084fc;"; // fallback purple
-                                    if (isset($TRACKING_STATUSES[$status])) {
-                                        $badge_color = $TRACKING_STATUSES[$status];
-                                        if ($badge_color === 'blue') { $badge_style = "background: rgba(59, 130, 246, 0.15); color: #60a5fa;"; }
-                                        elseif ($badge_color === 'purple') { $badge_style = "background: rgba(139, 92, 246, 0.15); color: #c084fc;"; }
-                                        elseif ($badge_color === 'orange') { $badge_style = "background: rgba(245, 158, 11, 0.15); color: #fbbf24;"; }
-                                        elseif ($badge_color === 'yellow') { $badge_style = "background: rgba(234, 179, 8, 0.15); color: #fef08a;"; }
-                                        elseif ($badge_color === 'green') { $badge_style = "background: rgba(16, 185, 129, 0.15); color: #34d399;"; }
-                                        elseif ($badge_color === 'darkgreen') { $badge_style = "background: rgba(4, 120, 87, 0.2); color: #059669;"; }
-                                    }
-                                    ?>
-                                    <span style="<?php echo $badge_style; ?> padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; display: inline-block;">
-                                        <?php echo htmlspecialchars($status, ENT_QUOTES, 'UTF-8'); ?>
-                                    </span>
-                                </td>
-                                <td><?php echo htmlspecialchars($update['location'] ?: '—', ENT_QUOTES, 'UTF-8'); ?></td>
-                                <td style="text-align: right; color: var(--text-secondary); font-size: 0.85rem;"><?php echo htmlspecialchars(date('M d, Y H:i', strtotime($update['updated_at'])), ENT_QUOTES, 'UTF-8'); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
+
 
     <!-- Row 2: Status Breakdown Summary Panels -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
