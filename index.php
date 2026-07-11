@@ -198,30 +198,24 @@ if ($is_logged_in) {
                         <i data-lucide="log-in" style="width: 20px; height: 20px;"></i>
                         <span><?php echo $is_logged_in ? 'Go to Dashboard' : 'Access Console'; ?></span>
                     </a>
-                    <?php if ($is_logged_in): ?>
-                        <a href="track.php" class="btn btn-secondary" style="padding: 1rem 2rem; font-size: 1rem; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border-color);">
-                            <i data-lucide="search" style="width: 18px; height: 18px;"></i>
-                            <span>Track Shipment</span>
-                        </a>
-                    <?php endif; ?>
                 </div>
 
-                <!-- Stats Row -->
+                <!-- Animated Stats Row -->
                 <div class="stat-row reveal delay-1">
                     <div class="stat-row-item">
-                        <strong>6+</strong>
+                        <strong class="lp-count" data-target="6" data-suffix="+">6+</strong>
                         <span>Fleet Vehicles</span>
                     </div>
                     <div class="stat-row-item">
-                        <strong>6+</strong>
+                        <strong class="lp-count" data-target="6" data-suffix="+">6+</strong>
                         <span>Registered Drivers</span>
                     </div>
                     <div class="stat-row-item">
-                        <strong>100%</strong>
+                        <strong style="background: linear-gradient(135deg, #60a5fa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">100%</strong>
                         <span>Live Tracking</span>
                     </div>
                     <div class="stat-row-item">
-                        <strong>3</strong>
+                        <strong class="lp-count" data-target="3" data-suffix="">3</strong>
                         <span>Active Routes</span>
                     </div>
                 </div>
@@ -307,6 +301,41 @@ if ($is_logged_in) {
             };
             setInterval(updateTime, 1000);
             updateTime();
+
+            // Count-up animation for landing stats
+            const animateCounter = (el) => {
+                const target = parseInt(el.getAttribute('data-target'), 10);
+                const suffix = el.getAttribute('data-suffix') || '';
+                if (isNaN(target)) return;
+                let start = 0;
+                const duration = 1200;
+                const step = Math.max(1, Math.ceil(target / (duration / 16)));
+                const timer = setInterval(() => {
+                    start += step;
+                    if (start >= target) {
+                        start = target;
+                        clearInterval(timer);
+                    }
+                    el.textContent = start + suffix;
+                }, 16);
+            };
+
+            // Trigger count-up when stat row becomes visible
+            const statRow = document.querySelector('.stat-row');
+            if (statRow) {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            document.querySelectorAll('.lp-count').forEach(animateCounter);
+                            observer.disconnect();
+                        }
+                    });
+                }, { threshold: 0.3 });
+                observer.observe(statRow);
+            } else {
+                // Trigger immediately on small pages
+                setTimeout(() => document.querySelectorAll('.lp-count').forEach(animateCounter), 400);
+            }
         });
     </script>
 </body>

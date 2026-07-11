@@ -159,11 +159,6 @@ require_once 'includes/header.php';
     0%   { background-position: -200% center; }
     100% { background-position: 200% center; }
 }
-@keyframes pulse-ring {
-    0%   { transform: scale(0.95); opacity: 0.6; }
-    70%  { transform: scale(1.15); opacity: 0; }
-    100% { transform: scale(0.95); opacity: 0; }
-}
 .dash-stat-card {
     position: relative;
     overflow: hidden;
@@ -209,13 +204,6 @@ require_once 'includes/header.php';
     position: relative;
     margin-bottom: 1.5rem;
 }
-.dash-stat-icon::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 14px;
-    animation: pulse-ring 2.5s ease-out infinite;
-}
 .dash-stat-label {
     font-size: 0.8rem;
     font-weight: 600;
@@ -252,14 +240,13 @@ require_once 'includes/header.php';
 
     <!-- Card 1: Fleet Vehicles (Indigo/Purple) -->
     <div class="dash-stat-card" style="
-        background: linear-gradient(145deg, rgba(99,102,241,0.2) 0%, rgba(139,92,246,0.08) 100%);
-        border: 1px solid rgba(99,102,241,0.35);
-        box-shadow: 0 4px 24px rgba(99,102,241,0.12);
-    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(99,102,241,0.3)'; this.style.borderColor='rgba(99,102,241,0.6)'"
-       onmouseleave="this.style.boxShadow='0 4px 24px rgba(99,102,241,0.12)'; this.style.borderColor='rgba(99,102,241,0.35)'">
+        background: linear-gradient(145deg, rgba(30,41,67,0.6) 0%, rgba(15,23,42,0.4) 100%);
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(0,0,0,0.4)'; this.style.borderColor='rgba(255,255,255,0.2)'"
+       onmouseleave="this.style.boxShadow='0 4px 24px rgba(0,0,0,0.25)'; this.style.borderColor='rgba(255,255,255,0.1)'">
         <div class="dash-stat-icon" style="background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc;">
             <i data-lucide="truck" style="width: 24px; height: 24px;"></i>
-            <div style="position:absolute;inset:0;border-radius:14px;animation:pulse-ring 2.5s ease-out infinite;background:rgba(99,102,241,0.3);"></div>
         </div>
         <span class="dash-stat-number" data-target="<?php echo $total_vehicles; ?>" style="background-image: linear-gradient(135deg, #a5b4fc 0%, #818cf8 50%, #6366f1 100%);">
             <?php echo number_format($total_vehicles); ?>
@@ -275,14 +262,13 @@ require_once 'includes/header.php';
 
     <!-- Card 2: Registered Drivers (Emerald) -->
     <div class="dash-stat-card" style="
-        background: linear-gradient(145deg, rgba(16,185,129,0.2) 0%, rgba(5,150,105,0.08) 100%);
-        border: 1px solid rgba(16,185,129,0.35);
-        box-shadow: 0 4px 24px rgba(16,185,129,0.12);
-    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(16,185,129,0.3)'; this.style.borderColor='rgba(16,185,129,0.6)'"
-       onmouseleave="this.style.boxShadow='0 4px 24px rgba(16,185,129,0.12)'; this.style.borderColor='rgba(16,185,129,0.35)'">
+        background: linear-gradient(145deg, rgba(30,41,67,0.6) 0%, rgba(15,23,42,0.4) 100%);
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(0,0,0,0.4)'; this.style.borderColor='rgba(255,255,255,0.2)'"
+       onmouseleave="this.style.boxShadow='0 4px 24px rgba(0,0,0,0.25)'; this.style.borderColor='rgba(255,255,255,0.1)'">
         <div class="dash-stat-icon" style="background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7;">
             <i data-lucide="users" style="width: 24px; height: 24px;"></i>
-            <div style="position:absolute;inset:0;border-radius:14px;animation:pulse-ring 2.5s ease-out infinite 0.6s;background:rgba(16,185,129,0.3);"></div>
         </div>
         <span class="dash-stat-number" data-target="<?php echo $total_drivers; ?>" style="background-image: linear-gradient(135deg, #6ee7b7 0%, #34d399 50%, #10b981 100%);">
             <?php echo number_format($total_drivers); ?>
@@ -298,14 +284,13 @@ require_once 'includes/header.php';
 
     <!-- Card 3: Today's Dispatch (Amber) -->
     <div class="dash-stat-card" style="
-        background: linear-gradient(145deg, rgba(245,158,11,0.2) 0%, rgba(217,119,6,0.08) 100%);
-        border: 1px solid rgba(245,158,11,0.35);
-        box-shadow: 0 4px 24px rgba(245,158,11,0.12);
-    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(245,158,11,0.3)'; this.style.borderColor='rgba(245,158,11,0.6)'"
-       onmouseleave="this.style.boxShadow='0 4px 24px rgba(245,158,11,0.12)'; this.style.borderColor='rgba(245,158,11,0.35)'">
+        background: linear-gradient(145deg, rgba(30,41,67,0.6) 0%, rgba(15,23,42,0.4) 100%);
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(0,0,0,0.4)'; this.style.borderColor='rgba(255,255,255,0.2)'"
+       onmouseleave="this.style.boxShadow='0 4px 24px rgba(0,0,0,0.25)'; this.style.borderColor='rgba(255,255,255,0.1)'">
         <div class="dash-stat-icon" style="background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.3); color: #fde68a;">
             <i data-lucide="calendar-check" style="width: 24px; height: 24px;"></i>
-            <div style="position:absolute;inset:0;border-radius:14px;animation:pulse-ring 2.5s ease-out infinite 1.2s;background:rgba(245,158,11,0.3);"></div>
         </div>
         <span class="dash-stat-number" data-target="<?php echo $today_trips; ?>" style="background-image: linear-gradient(135deg, #fde68a 0%, #fbbf24 50%, #f59e0b 100%);">
             <?php echo number_format($today_trips); ?>
@@ -321,14 +306,13 @@ require_once 'includes/header.php';
 
     <!-- Card 4: Total Trips (Blue) -->
     <div class="dash-stat-card" style="
-        background: linear-gradient(145deg, rgba(59,130,246,0.2) 0%, rgba(37,99,235,0.08) 100%);
-        border: 1px solid rgba(59,130,246,0.35);
-        box-shadow: 0 4px 24px rgba(59,130,246,0.12);
-    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(59,130,246,0.3)'; this.style.borderColor='rgba(59,130,246,0.6)'"
-       onmouseleave="this.style.boxShadow='0 4px 24px rgba(59,130,246,0.12)'; this.style.borderColor='rgba(59,130,246,0.35)'">
+        background: linear-gradient(145deg, rgba(30,41,67,0.6) 0%, rgba(15,23,42,0.4) 100%);
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    " onmouseenter="this.style.boxShadow='0 24px 48px rgba(0,0,0,0.4)'; this.style.borderColor='rgba(255,255,255,0.2)'"
+       onmouseleave="this.style.boxShadow='0 4px 24px rgba(0,0,0,0.25)'; this.style.borderColor='rgba(255,255,255,0.1)'">
         <div class="dash-stat-icon" style="background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd;">
             <i data-lucide="navigation" style="width: 24px; height: 24px;"></i>
-            <div style="position:absolute;inset:0;border-radius:14px;animation:pulse-ring 2.5s ease-out infinite 1.8s;background:rgba(59,130,246,0.3);"></div>
         </div>
         <span class="dash-stat-number" data-target="<?php echo $total_trips; ?>" style="background-image: linear-gradient(135deg, #93c5fd 0%, #60a5fa 50%, #3b82f6 100%);">
             <?php echo number_format($total_trips); ?>
@@ -455,31 +439,93 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <!-- Quick Action Shortcuts -->
-<div class="dashboard-panel" style="margin-top: 2rem;">
-    <div class="panel-header" style="border-bottom: none; padding: 1.5rem 1.5rem 0.5rem 1.5rem;">
-        <h3 style="font-size: 1.1rem; font-weight: 700; color: white;">Quick Operations Shortcuts</h3>
+<div style="margin-top: 2rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;">
+        <i data-lucide="zap" style="width: 18px; height: 18px; color: var(--accent-blue);"></i>
+        <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary);">Quick Operations</h3>
     </div>
-    <div style="display: flex; flex-wrap: wrap; gap: 15px; padding: 0 1.5rem 1.5rem 1.5rem; margin-top: 1rem;">
-        <a href="add_vehicle.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px;">
-            <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
-            <span>Add Vehicle</span>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem;">
+
+        <a href="add_vehicle.php" style="
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 0.75rem; padding: 1.5rem 1rem; text-decoration: none;
+            background: linear-gradient(145deg, rgba(59,130,246,0.15), rgba(59,130,246,0.05));
+            border: 1px solid rgba(59,130,246,0.25); border-radius: 16px;
+            color: #60a5fa; text-align: center;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        " onmouseenter="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 32px rgba(59,130,246,0.25)';this.style.borderColor='rgba(59,130,246,0.5)'"
+           onmouseleave="this.style.transform='';this.style.boxShadow='';this.style.borderColor='rgba(59,130,246,0.25)'">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.3); display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="truck" style="width: 22px; height: 22px;"></i>
+            </div>
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary);">Add Vehicle</span>
+            <span style="font-size: 0.7rem; color: #93c5fd; opacity: 0.8;">Register fleet unit</span>
         </a>
-        <a href="add_driver.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px;">
-            <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
-            <span>Add Driver</span>
+
+        <a href="add_driver.php" style="
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 0.75rem; padding: 1.5rem 1rem; text-decoration: none;
+            background: linear-gradient(145deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05));
+            border: 1px solid rgba(16,185,129,0.25); border-radius: 16px;
+            color: #34d399; text-align: center;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        " onmouseenter="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 32px rgba(16,185,129,0.25)';this.style.borderColor='rgba(16,185,129,0.5)'"
+           onmouseleave="this.style.transform='';this.style.boxShadow='';this.style.borderColor='rgba(16,185,129,0.25)'">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.3); display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="user-plus" style="width: 22px; height: 22px;"></i>
+            </div>
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary);">Add Driver</span>
+            <span style="font-size: 0.7rem; color: #6ee7b7; opacity: 0.8;">Register personnel</span>
         </a>
-        <a href="add_trip.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px;">
-            <i data-lucide="navigation-2" style="width: 16px; height: 16px;"></i>
-            <span>Schedule Trip</span>
+
+        <a href="add_trip.php" style="
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 0.75rem; padding: 1.5rem 1rem; text-decoration: none;
+            background: linear-gradient(145deg, rgba(167,139,250,0.15), rgba(167,139,250,0.05));
+            border: 1px solid rgba(167,139,250,0.25); border-radius: 16px;
+            color: #a78bfa; text-align: center;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        " onmouseenter="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 32px rgba(167,139,250,0.25)';this.style.borderColor='rgba(167,139,250,0.5)'"
+           onmouseleave="this.style.transform='';this.style.boxShadow='';this.style.borderColor='rgba(167,139,250,0.25)'">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(167,139,250,0.2); border: 1px solid rgba(167,139,250,0.3); display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="navigation-2" style="width: 22px; height: 22px;"></i>
+            </div>
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary);">Schedule Trip</span>
+            <span style="font-size: 0.7rem; color: #c4b5fd; opacity: 0.8;">Dispatch a route</span>
         </a>
-        <a href="update_tracking.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px;">
-            <i data-lucide="activity" style="width: 16px; height: 16px;"></i>
-            <span>Post Tracking Log</span>
+
+        <a href="update_tracking.php" style="
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 0.75rem; padding: 1.5rem 1rem; text-decoration: none;
+            background: linear-gradient(145deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05));
+            border: 1px solid rgba(245,158,11,0.25); border-radius: 16px;
+            color: #fbbf24; text-align: center;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        " onmouseenter="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 32px rgba(245,158,11,0.25)';this.style.borderColor='rgba(245,158,11,0.5)'"
+           onmouseleave="this.style.transform='';this.style.boxShadow='';this.style.borderColor='rgba(245,158,11,0.25)'">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.3); display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="activity" style="width: 22px; height: 22px;"></i>
+            </div>
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary);">Post Tracking Log</span>
+            <span style="font-size: 0.7rem; color: #fde68a; opacity: 0.8;">Update status</span>
         </a>
-        <a href="reports.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px;">
-            <i data-lucide="trending-up" style="width: 16px; height: 16px;"></i>
-            <span>View Reports</span>
+
+        <a href="reports.php" style="
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 0.75rem; padding: 1.5rem 1rem; text-decoration: none;
+            background: linear-gradient(145deg, rgba(244,63,94,0.15), rgba(244,63,94,0.05));
+            border: 1px solid rgba(244,63,94,0.25); border-radius: 16px;
+            color: #fb7185; text-align: center;
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        " onmouseenter="this.style.transform='translateY(-5px)';this.style.boxShadow='0 16px 32px rgba(244,63,94,0.25)';this.style.borderColor='rgba(244,63,94,0.5)'"
+           onmouseleave="this.style.transform='';this.style.boxShadow='';this.style.borderColor='rgba(244,63,94,0.25)'">
+            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(244,63,94,0.2); border: 1px solid rgba(244,63,94,0.3); display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="trending-up" style="width: 22px; height: 22px;"></i>
+            </div>
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary);">View Reports</span>
+            <span style="font-size: 0.7rem; color: #fda4af; opacity: 0.8;">Analytics &amp; logs</span>
         </a>
+
     </div>
 </div>
 

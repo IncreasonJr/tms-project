@@ -125,29 +125,71 @@ require_once 'includes/header.php';
     <p style="font-size: 0.9rem; color: var(--text-secondary);">Here are your currently assigned dispatches, transport status updates, and route schedules.</p>
 </div>
 
-<!-- Driver Meta Info & Active Vehicle Grid -->
-<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-bottom: 2rem;">
-    <!-- Driver Info Card -->
-    <div class="stat-card">
-        <div class="stat-icon-container" style="background-color: rgba(59, 130, 246, 0.1); color: #60a5fa;">
-            <i data-lucide="user"></i>
+<!-- Driver Profile Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+
+    <!-- Identity Card -->
+    <div style="
+        position: relative; overflow: hidden;
+        background: linear-gradient(145deg, rgba(59,130,246,0.18) 0%, rgba(37,99,235,0.06) 100%);
+        border: 1px solid rgba(59,130,246,0.3);
+        border-radius: 20px; padding: 1.75rem;
+        backdrop-filter: blur(20px);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        animation: cardEntrance 0.5s cubic-bezier(0.34,1.56,0.64,1) both 0.05s;
+    " onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 20px 40px rgba(59,130,246,0.25)'" onmouseleave="this.style.transform='';this.style.boxShadow=''">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.3); display: flex; align-items: center; justify-content: center; color: #60a5fa; flex-shrink: 0;">
+                <i data-lucide="user" style="width: 24px; height: 24px;"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #93c5fd; margin-bottom: 0.2rem;">Driver Identity</div>
+                <div style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em;"><?php echo htmlspecialchars($driver_record ? ($driver_record['full_name'] ?? $driver_record['fullname'] ?? 'Driver Profile') : 'Driver Profile', ENT_QUOTES, 'UTF-8'); ?></div>
+            </div>
         </div>
-        <div class="stat-details">
-            <span class="stat-value" style="font-size: 1.2rem; word-break: break-all;"><?php echo htmlspecialchars($driver_record ? ($driver_record['full_name'] ?? $driver_record['fullname']) : 'Driver Profile', ENT_QUOTES, 'UTF-8'); ?></span>
-            <span class="stat-label">License: <?php echo htmlspecialchars($driver_record['license_number'] ?? '—', ENT_QUOTES, 'UTF-8'); ?></span>
+        <div style="display: flex; align-items: center; gap: 0.75rem; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.15); border-radius: 10px; padding: 0.75rem 1rem;">
+            <i data-lucide="credit-card" style="width: 16px; height: 16px; color: #60a5fa; flex-shrink: 0;"></i>
+            <div>
+                <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #93c5fd; font-weight: 600;">License Number</div>
+                <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary); font-family: monospace; letter-spacing: 1px;"><?php echo htmlspecialchars($driver_record['license_number'] ?? '—', ENT_QUOTES, 'UTF-8'); ?></div>
+            </div>
         </div>
+        <div style="position: absolute; bottom: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; background: rgba(59,130,246,0.12); filter: blur(25px);"></div>
     </div>
 
     <!-- Contact & Status Card -->
-    <div class="stat-card">
-        <div class="stat-icon-container" style="background-color: rgba(16, 185, 129, 0.1); color: #34d399;">
-            <i data-lucide="phone"></i>
+    <div style="
+        position: relative; overflow: hidden;
+        background: linear-gradient(145deg, rgba(16,185,129,0.18) 0%, rgba(5,150,105,0.06) 100%);
+        border: 1px solid rgba(16,185,129,0.3);
+        border-radius: 20px; padding: 1.75rem;
+        backdrop-filter: blur(20px);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        animation: cardEntrance 0.5s cubic-bezier(0.34,1.56,0.64,1) both 0.12s;
+    " onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 20px 40px rgba(16,185,129,0.25)'" onmouseleave="this.style.transform='';this.style.boxShadow=''">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.3); display: flex; align-items: center; justify-content: center; color: #34d399; flex-shrink: 0;">
+                <i data-lucide="phone" style="width: 24px; height: 24px;"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #6ee7b7; margin-bottom: 0.2rem;">Contact</div>
+                <div style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary);"><?php echo htmlspecialchars($driver_record['phone'] ?? '—', ENT_QUOTES, 'UTF-8'); ?></div>
+            </div>
         </div>
-        <div class="stat-details">
-            <span class="stat-value" style="font-size: 1.2rem;"><?php echo htmlspecialchars($driver_record['phone'] ?? '—', ENT_QUOTES, 'UTF-8'); ?></span>
-            <span class="stat-label">Status: <strong style="color: white;"><?php echo htmlspecialchars(ucfirst($driver_record['status'] ?? 'Available'), ENT_QUOTES, 'UTF-8'); ?></strong></span>
+        <div style="display: flex; align-items: center; gap: 0.75rem; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.15); border-radius: 10px; padding: 0.75rem 1rem;">
+            <?php 
+            $dstatus = strtolower($driver_record['status'] ?? 'available');
+            $status_dot_color = $dstatus === 'available' ? '#34d399' : ($dstatus === 'on_trip' ? '#fbbf24' : '#f87171');
+            ?>
+            <div style="width: 10px; height: 10px; border-radius: 50%; background: <?php echo $status_dot_color; ?>; box-shadow: 0 0 8px <?php echo $status_dot_color; ?>; flex-shrink: 0; animation: pulse 2s infinite;"></div>
+            <div>
+                <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #6ee7b7; font-weight: 600;">Duty Status</div>
+                <div style="font-size: 0.9rem; font-weight: 700; color: <?php echo $status_dot_color; ?>;"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $driver_record['status'] ?? 'Available')), ENT_QUOTES, 'UTF-8'); ?></div>
+            </div>
         </div>
+        <div style="position: absolute; bottom: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; background: rgba(16,185,129,0.12); filter: blur(25px);"></div>
     </div>
+
 </div>
 
 <!-- My Assigned dispatches -->

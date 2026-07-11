@@ -223,16 +223,11 @@ if ($user_role === 'admin') {
                         <span>Accra, GH: <strong id="accra-time">--:--:--</strong></span>
                     </div>
 
-                    <!-- Connection indicator fallback warning if local database fails -->
+                    <!-- Connection indicator: only show warning when in simulation mode -->
                     <?php if (!$db_connected): ?>
                         <div class="header-widget warning-widget" title="Local MySQL server not running. Active database simulation mode enabled.">
                             <i data-lucide="database-backup"></i>
                             <span>Simulation Mode</span>
-                        </div>
-                    <?php else: ?>
-                        <div class="header-widget success-widget" title="MySQL Database connected successfully.">
-                            <i data-lucide="database"></i>
-                            <span>DB Connected</span>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -250,7 +245,7 @@ if ($user_role === 'admin') {
                     </div>
                     <div style="display: flex; gap: 1rem; justify-content: center;">
                         <button id="confirm-modal-cancel" class="btn btn-secondary" style="flex: 1; justify-content: center; padding: 0.65rem; border-radius: 8px; font-weight: 600;">Cancel</button>
-                        <button id="confirm-modal-approve" class="btn btn-danger" style="flex: 1; justify-content: center; padding: 0.65rem; border-radius: 8px; font-weight: 600; background-color: #ef4444;">Delete</button>
+                        <button id="confirm-modal-approve" class="btn btn-danger" style="flex: 1; justify-content: center; padding: 0.65rem; border-radius: 8px; font-weight: 700; background-color: #ef4444; color: #ffffff !important; letter-spacing: 0.03em;">Delete</button>
                     </div>
                 </div>
             </div>
