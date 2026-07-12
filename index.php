@@ -7,18 +7,19 @@
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/functions.php';
 
-// Check if user is logged in to change CTA button
+// Check if user is logged in to redirect to dashboard
 $is_logged_in = isset($_SESSION['user_id']);
-$dashboard_url = 'login.php';
 if ($is_logged_in) {
     if ($_SESSION['user_role'] === 'admin') {
-        $dashboard_url = 'dashboard.php';
+        header("Location: dashboard.php");
     } elseif ($_SESSION['user_role'] === 'driver') {
-        $dashboard_url = 'driver_dashboard.php';
+        header("Location: driver_dashboard.php");
     } else {
-        $dashboard_url = 'customer_dashboard.php';
+        header("Location: customer_dashboard.php");
     }
+    exit();
 }
+$dashboard_url = 'login.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
