@@ -48,25 +48,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'id' => 999,
                         'fullname' => 'System Admin',
                         'role' => 'admin',
-                        'password' => 'admin123'
+                        'password' => 'fleet123'
                     ],
                     'dispatcher@fleet.com' => [
                         'id' => 998,
                         'fullname' => 'System Dispatcher',
                         'role' => 'admin',
-                        'password' => 'admin123'
+                        'password' => 'fleet123'
                     ],
-                    'yard@fleet.com' => [
-                        'id' => 1, // Kwame Mensah driver id
+                    'driver@fleet.com' => [
+                        'id' => 1,
                         'fullname' => 'Kwame Mensah',
                         'role' => 'driver',
-                        'password' => 'driver123'
+                        'password' => 'fleet123'
+                    ],
+                    'yard@fleet.com' => [
+                        'id' => 1,
+                        'fullname' => 'Kwame Mensah',
+                        'role' => 'driver',
+                        'password' => 'fleet123'
                     ],
                     'customer@fleet.com' => [
-                        'id' => 1, // customer id
+                        'id' => 1,
                         'fullname' => 'Customer User',
                         'role' => 'customer',
-                        'password' => 'customer123'
+                        'password' => 'fleet123'
                     ]
                 ];
 
