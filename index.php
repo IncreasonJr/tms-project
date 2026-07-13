@@ -29,7 +29,7 @@ $dashboard_url = 'login.php';
     <title>FLEET - Transport & Logistics Management System</title>
     <meta name="description" content="FLEET is Ghana's premier enterprise transport management system. Track shipments, manage drivers, dispatch vehicles, and monitor fleet operations in real-time.">
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="assets/images/Logo1.png">
+    <link rel="icon" type="image/png" href="/assets/images/Logo1.png">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

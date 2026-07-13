@@ -29,7 +29,7 @@ if ($user_role === 'admin') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($page_title) ? $page_title . " - FLEET Control" : "FLEET Control - Transport Management System"; ?></title>
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="assets/images/Logo1.png">
+    <link rel="icon" type="image/png" href="/assets/images/Logo1.png">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
