@@ -71,7 +71,7 @@ if ($db_connected && $conn) {
     // Simulation Mode order list
     if (isset($_SESSION['mock_trips'])) {
         foreach ($_SESSION['mock_trips'] as $t) {
-            if (intval($t['customer_id']) === $customer_id) {
+            if (isset($t['customer_id']) && intval($t['customer_id']) === $customer_id) {
                 $v_name = '';
                 $v_plate = '';
                 if ($t['vehicle_id'] && isset($_SESSION['mock_vehicles'][$t['vehicle_id']])) {
