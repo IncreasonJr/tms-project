@@ -126,7 +126,7 @@ require_once 'includes/header.php';
 </div>
 
 <!-- Driver Profile Cards -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+<div class="driver-profile-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
 
     <!-- Identity Card -->
     <div style="

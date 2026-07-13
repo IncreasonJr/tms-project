@@ -1653,6 +1653,138 @@ body.light-theme .dash-stat-number {
 body.light-theme .dash-stat-label  { color: #475569 !important; }
 body.light-theme .dash-stat-footer { color: #64748b !important; }
 
+/* ---- Dashboard Stat Card Icon Overrides ---- */
+body.light-theme .dash-stat-card:nth-child(1) .dash-stat-icon {
+    background: rgba(99,102,241,0.15) !important;
+    border: 1px solid rgba(99,102,241,0.3) !important;
+    color: #4f46e5 !important;
+}
+body.light-theme .dash-stat-card:nth-child(1) .dash-stat-label,
+body.light-theme .dash-stat-card:nth-child(1) .dash-stat-footer {
+    color: #4f46e5 !important;
+}
+body.light-theme .dash-stat-card:nth-child(2) .dash-stat-icon {
+    background: rgba(16,185,129,0.15) !important;
+    border: 1px solid rgba(16,185,129,0.3) !important;
+    color: #059669 !important;
+}
+body.light-theme .dash-stat-card:nth-child(2) .dash-stat-label,
+body.light-theme .dash-stat-card:nth-child(2) .dash-stat-footer {
+    color: #059669 !important;
+}
+body.light-theme .dash-stat-card:nth-child(3) .dash-stat-icon {
+    background: rgba(245,158,11,0.15) !important;
+    border: 1px solid rgba(245,158,11,0.3) !important;
+    color: #d97706 !important;
+}
+body.light-theme .dash-stat-card:nth-child(3) .dash-stat-label,
+body.light-theme .dash-stat-card:nth-child(3) .dash-stat-footer {
+    color: #d97706 !important;
+}
+body.light-theme .dash-stat-card:nth-child(4) .dash-stat-icon {
+    background: rgba(59,130,246,0.15) !important;
+    border: 1px solid rgba(59,130,246,0.3) !important;
+    color: #2563eb !important;
+}
+body.light-theme .dash-stat-card:nth-child(4) .dash-stat-label,
+body.light-theme .dash-stat-card:nth-child(4) .dash-stat-footer {
+    color: #2563eb !important;
+}
+
+/* ---- Quick Operations Shortcuts Overrides ---- */
+body.light-theme .quick-actions-grid a {
+    color: #334155 !important;
+}
+body.light-theme .quick-actions-grid a span:last-child {
+    color: #64748b !important;
+}
+body.light-theme .quick-actions-grid a:nth-child(1) {
+    background: linear-gradient(145deg, rgba(59,130,246,0.08), rgba(59,130,246,0.03)) !important;
+    border: 1px solid rgba(59,130,246,0.2) !important;
+}
+body.light-theme .quick-actions-grid a:nth-child(1) div {
+    background: rgba(59,130,246,0.12) !important;
+    border: 1px solid rgba(59,130,246,0.2) !important;
+    color: #2563eb !important;
+}
+body.light-theme .quick-actions-grid a:nth-child(2) {
+    background: linear-gradient(145deg, rgba(16,185,129,0.08), rgba(16,185,129,0.03)) !important;
+    border: 1px solid rgba(16,185,129,0.2) !important;
+}
+body.light-theme .quick-actions-grid a:nth-child(2) div {
+    background: rgba(16,185,129,0.12) !important;
+    border: 1px solid rgba(16,185,129,0.2) !important;
+    color: #059669 !important;
+}
+body.light-theme .quick-actions-grid a:nth-child(3) {
+    background: linear-gradient(145deg, rgba(167,139,250,0.08), rgba(167,139,250,0.03)) !important;
+    border: 1px solid rgba(167,139,250,0.2) !important;
+}
+body.light-theme .quick-actions-grid a:nth-child(3) div {
+    background: rgba(167,139,250,0.12) !important;
+    border: 1px solid rgba(167,139,250,0.2) !important;
+    color: #7c3aed !important;
+}
+body.light-theme .quick-actions-grid a:nth-child(4) {
+    background: linear-gradient(145deg, rgba(245,158,11,0.08), rgba(245,158,11,0.03)) !important;
+    border: 1px solid rgba(245,158,11,0.2) !important;
+}
+body.light-theme .quick-actions-grid a:nth-child(4) div {
+    background: rgba(245,158,11,0.12) !important;
+    border: 1px solid rgba(245,158,11,0.2) !important;
+    color: #d97706 !important;
+}
+body.light-theme .quick-actions-grid a:nth-child(5) {
+    background: linear-gradient(145deg, rgba(244,63,94,0.08), rgba(244,63,94,0.03)) !important;
+    border: 1px solid rgba(244,63,94,0.2) !important;
+}
+body.light-theme .quick-actions-grid a:nth-child(5) div {
+    background: rgba(244,63,94,0.12) !important;
+    border: 1px solid rgba(244,63,94,0.2) !important;
+    color: #e11d48 !important;
+}
+
+/* ---- Driver Profile Cards Overrides ---- */
+body.light-theme .driver-profile-grid > div:nth-child(1) {
+    background: linear-gradient(145deg, rgba(59,130,246,0.08) 0%, rgba(59,130,246,0.03) 100%) !important;
+    border-color: rgba(59,130,246,0.2) !important;
+}
+body.light-theme .driver-profile-grid > div:nth-child(1) div[style*="width: 52px"] {
+    background: rgba(59,130,246,0.12) !important;
+    border-color: rgba(59,130,246,0.2) !important;
+    color: #2563eb !important;
+}
+body.light-theme .driver-profile-grid > div:nth-child(1) div[style*="font-size: 0.65rem"] {
+    color: #1e3a8a !important;
+}
+body.light-theme .driver-profile-grid > div:nth-child(1) div[style*="background: rgba(59,130,246,0.1)"] {
+    background: rgba(59,130,246,0.08) !important;
+    border-color: rgba(59,130,246,0.15) !important;
+}
+body.light-theme .driver-profile-grid > div:nth-child(1) i {
+    color: #2563eb !important;
+}
+
+body.light-theme .driver-profile-grid > div:nth-child(2) {
+    background: linear-gradient(145deg, rgba(16,185,129,0.08) 0%, rgba(16,185,129,0.03) 100%) !important;
+    border-color: rgba(16,185,129,0.2) !important;
+}
+body.light-theme .driver-profile-grid > div:nth-child(2) div[style*="width: 52px"] {
+    background: rgba(16,185,129,0.12) !important;
+    border-color: rgba(16,185,129,0.2) !important;
+    color: #059669 !important;
+}
+body.light-theme .driver-profile-grid > div:nth-child(2) div[style*="font-size: 0.65rem"] {
+    color: #064e3b !important;
+}
+body.light-theme .driver-profile-grid > div:nth-child(2) div[style*="background: rgba(16,185,129,0.1)"] {
+    background: rgba(16,185,129,0.08) !important;
+    border-color: rgba(16,185,129,0.15) !important;
+}
+body.light-theme .driver-profile-grid > div:nth-child(2) i {
+    color: #059669 !important;
+}
+
 /* ---- Page Titles & Subtitles ---- */
 body.light-theme .page-title        { color: #0f172a !important; }
 body.light-theme .panel-header h3,

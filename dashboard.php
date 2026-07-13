@@ -477,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <i data-lucide="zap" style="width: 18px; height: 18px; color: var(--accent-blue);"></i>
         <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-primary);">Quick Operations</h3>
     </div>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem;">
+    <div class="quick-actions-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem;">
 
         <a href="add_vehicle.php" style="
             display: flex; flex-direction: column; align-items: center; justify-content: center;
