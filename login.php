@@ -42,7 +42,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error_msg = 'Please enter both email and password.';
         } else {
             if (!$db_connected) {
-                $error_msg = 'Database connection is offline. Authentication is currently unavailable.';
+                // Allow fallback mock logins in Simulation Mode
+                $mock_users = [
+                    'admin@fleet.com' => [
+                        'id' => 999,
+                        'fullname' => 'System Admin',
+                        'role' => 'admin',
+                        'password' => 'admin123'
+                    ],
+                    'dispatcher@fleet.com' => [
+                        'id' => 998,
+                        'fullname' => 'System Dispatcher',
+                        'role' => 'admin',
+                        'password' => 'admin123'
+                    ],
+                    'yard@fleet.com' => [
+                        'id' => 1, // Kwame Mensah driver id
+                        'fullname' => 'Kwame Mensah',
+                        'role' => 'driver',
+                        'password' => 'driver123'
+                    ],
+                    'customer@fleet.com' => [
+                        'id' => 1, // customer id
+                        'fullname' => 'Customer User',
+                        'role' => 'customer',
+                        'password' => 'customer123'
+                    ]
+                ];
+
+                if (isset($mock_users[$email]) && $password === $mock_users[$email]['password']) {
+                    $user = $mock_users[$email];
+                    session_regenerate_id(true);
+                    $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['username'] = $user['fullname'];
+                    $_SESSION['user_name'] = $user['fullname'];
+                    $_SESSION['user_role'] = $user['role'];
+                    $_SESSION['last_activity'] = time();
+
+                    // If driver, store driver_id
+                    if ($user['role'] === 'driver') {
+                        $_SESSION['driver_id'] = $user['id'];
+                    }
+
+                    if ($user['role'] === 'admin') {
+                        header("Location: dashboard.php?msg=Welcome+back,+" . urlencode($user['fullname']));
+                    } elseif ($user['role'] === 'driver') {
+                        header("Location: driver_dashboard.php?msg=Welcome+back,+" . urlencode($user['fullname']));
+                    } elseif ($user['role'] === 'customer') {
+                        header("Location: customer_dashboard.php?msg=Welcome+back,+" . urlencode($user['fullname']));
+                    } else {
+                        header("Location: index.php");
+                    }
+                    exit();
+                } else {
+                    $error_msg = 'Invalid mock email or password for offline simulation mode.';
+                }
             } else {
                 // Prepared statements for SQL Injection Protection
                 $sql = "SELECT id, fullname, email, password, role FROM admins WHERE email = ? LIMIT 1";
@@ -60,6 +114,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 $_SESSION['user_name'] = $row['fullname']; // compatibility with frontend-trips
                                 $_SESSION['user_role'] = $row['role'];
                                 $_SESSION['last_activity'] = time(); // Initialize activity timestamp
+                                
+                                // If driver, fetch dynamic driver_id
+                                if ($row['role'] === 'driver') {
+                                    // Map email to driver_id
+                                    $d_sql = "SELECT id FROM drivers WHERE email = ? LIMIT 1";
+                                    if ($d_stmt = mysqli_prepare($conn, $d_sql)) {
+                                        mysqli_stmt_bind_param($d_stmt, "s", $row['email']);
+                                        if (mysqli_stmt_execute($d_stmt)) {
+                                            $d_res = mysqli_stmt_get_result($d_stmt);
+                                            if ($d_row = mysqli_fetch_assoc($d_res)) {
+                                                $_SESSION['driver_id'] = $d_row['id'];
+                                            }
+                                        }
+                                        mysqli_stmt_close($d_stmt);
+                                    }
+                                    if (!isset($_SESSION['driver_id'])) {
+                                        $_SESSION['driver_id'] = 1; // fallback
+                                    }
+                                }
                                 
                                 // Dynamic redirection based on role
                                 if ($row['role'] === 'admin') {
