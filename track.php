@@ -14,6 +14,9 @@ $error = '';
 $code = isset($_GET['code']) ? trim($_GET['code']) : '';
 $tracking_data = null;
 $can_update = false;
+$latest_update = null;
+$fill_pct = 0;
+$details = [];
 
 // Handle POST request to add tracking updates directly on this page
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['log_update'])) {
@@ -26,6 +29,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['log_update'])) {
         $status = isset($_POST['status']) ? sanitize_input($_POST['status']) : '';
         $location = isset($_POST['location']) ? sanitize_input($_POST['location']) : '';
         $description = isset($_POST['description']) ? sanitize_input($_POST['description']) : '';
+        $latitude = isset($_POST['latitude']) ? trim($_POST['latitude']) : '';
+        $longitude = isset($_POST['longitude']) ? trim($_POST['longitude']) : '';
+
+        if ($latitude !== '' && $longitude !== '') {
+            $gps_note = 'Browser GPS: ' . $latitude . ', ' . $longitude;
+            $description = trim($description . "\n" . $gps_note);
+        }
         
         if (empty($trip_id) || empty($status) || empty($location) || empty($description)) {
             $error = 'All fields are required to log a tracking update.';
@@ -53,9 +63,28 @@ if (!empty($code) || isset($_GET['search'])) {
     }
 }
 
+if (isset($_GET['format']) && $_GET['format'] === 'json') {
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    if ($tracking_data) {
+        $json_history = $tracking_data['tracking_history'];
+        $json_latest = !empty($json_history) ? $json_history[0] : null;
+        echo json_encode([
+            'ok' => true,
+            'tracking_data' => $tracking_data,
+            'live_location' => !empty($json_latest['location']) ? $json_latest['location'] : ($tracking_data['trip_details']['origin'] ?? '')
+        ]);
+    } else {
+        echo json_encode(['ok' => false, 'error' => $error ?: 'Delivery not found.']);
+    }
+    exit();
+}
+
 // Determine if the current logged-in user is authorized to post updates
 if ($tracking_data) {
     $details = $tracking_data['trip_details'];
+    $tracking_history = $tracking_data['tracking_history'];
+    $latest_update = !empty($tracking_history) ? $tracking_history[0] : null;
     $user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : '';
     
     if ($user_role === 'admin') {
@@ -595,6 +624,8 @@ body.light-theme .status-pill { background: rgba(59,130,246,0.08); }
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCSRFToken(), ENT_QUOTES, 'UTF-8'); ?>">
                     <input type="hidden" name="trip_id" value="<?php echo htmlspecialchars($details['id'], ENT_QUOTES, 'UTF-8'); ?>">
                     <input type="hidden" name="trip_code" value="<?php echo htmlspecialchars($details['trip_code'], ENT_QUOTES, 'UTF-8'); ?>">
+                    <input type="hidden" name="latitude" id="latitude-field" value="">
+                    <input type="hidden" name="longitude" id="longitude-field" value="">
                     <input type="hidden" name="log_update" value="1">
 
                     <div class="form-group">
@@ -612,6 +643,7 @@ body.light-theme .status-pill { background: rgba(59,130,246,0.08); }
                     <div class="form-group">
                         <label for="location" class="form-label">Current Transit Location *</label>
                         <input type="text" id="location" name="location" required placeholder="e.g. Suhum Checkpoint, Eastern Region" class="form-control">
+                        <div id="geo-status" style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.35rem;">Browser location will be attached automatically if permission is allowed.</div>
                     </div>
 
                     <div class="form-group">
@@ -657,6 +689,12 @@ body.light-theme .status-pill { background: rgba(59,130,246,0.08); }
 <script>
 // Dynamic Route Canvas & GPS Telemetry Simulator
 document.addEventListener('DOMContentLoaded', () => {
+    <?php if ($tracking_data && !$can_update): ?>
+    setInterval(() => {
+        window.location.reload();
+    }, 20000);
+    <?php endif; ?>
+
     <?php if ($tracking_data): ?>
     
     // GPS Coordinates Database of major towns in Ghana
@@ -724,6 +762,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const coordsEl = document.getElementById('tel-coords');
     const speedEl = document.getElementById('tel-speed');
     const distanceEl = document.getElementById('tel-distance');
+    const locationField = document.getElementById('location');
+    const latitudeField = document.getElementById('latitude-field');
+    const longitudeField = document.getElementById('longitude-field');
+    const geoStatus = document.getElementById('geo-status');
+
+    const attachBrowserLocation = () => {
+        if (!navigator.geolocation) {
+            if (geoStatus) geoStatus.textContent = 'Browser geolocation is not available in this browser.';
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition((position) => {
+            const lat = position.coords.latitude.toFixed(6);
+            const lng = position.coords.longitude.toFixed(6);
+
+            if (latitudeField) latitudeField.value = lat;
+            if (longitudeField) longitudeField.value = lng;
+
+            if (locationField && !locationField.value.trim()) {
+                locationField.value = `GPS ${lat}, ${lng}`;
+            }
+
+            if (geoStatus) {
+                geoStatus.textContent = `Browser location captured: ${lat}, ${lng}`;
+            }
+        }, () => {
+            if (geoStatus) geoStatus.textContent = 'Location permission denied. Enter the current stop manually.';
+        }, {
+            enableHighAccuracy: true,
+            timeout: 8000,
+            maximumAge: 0
+        });
+    };
+
+    if (locationField) {
+        locationField.addEventListener('focus', attachBrowserLocation, { once: true });
+    }
+    attachBrowserLocation();
 
     // Winding highway path helper (bezier control points calculation)
     function getBezierPoint(p0, p1, p2, p3, t) {

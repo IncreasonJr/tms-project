@@ -32,6 +32,19 @@ $recent_updates = [];
 $pending_requests = [];
 
 if ($db_connected && $conn) {
+    $admins_has_username = false;
+    $trips_has_customer_id = false;
+
+    if ($col_res = mysqli_query($conn, "SHOW COLUMNS FROM admins LIKE 'username'")) {
+        $admins_has_username = mysqli_num_rows($col_res) > 0;
+        mysqli_free_result($col_res);
+    }
+
+    if ($col_res = mysqli_query($conn, "SHOW COLUMNS FROM trips LIKE 'customer_id'")) {
+        $trips_has_customer_id = mysqli_num_rows($col_res) > 0;
+        mysqli_free_result($col_res);
+    }
+
     // Total Vehicles
     $res = mysqli_query($conn, "SELECT COUNT(*) as total FROM vehicles");
     if ($res) { $row = mysqli_fetch_assoc($res); $total_vehicles = $row['total']; mysqli_free_result($res); }
@@ -69,18 +82,33 @@ if ($db_connected && $conn) {
     }
     
     // Recent 5 Tracking Updates
-    $recent_query = "SELECT tu.*, t.trip_code FROM tracking_updates tu JOIN trips t ON tu.trip_id = t.id ORDER BY tu.updated_at DESC, tu.id DESC LIMIT 5";
+    $recent_query = "SELECT tu.*, t.trip_code FROM tracking_updates tu JOIN trips t ON tu.trip_id = t.id ORDER BY tu.created_at DESC, tu.id DESC LIMIT 5";
     if ($r_res = mysqli_query($conn, $recent_query)) {
         while ($row = mysqli_fetch_assoc($r_res)) {
             $recent_updates[] = $row;
         }
         mysqli_free_result($r_res);
     }
-    // Fetch pending customer requests
-    $req_query = "SELECT t.*, a.fullname AS customer_name FROM trips t 
-                  LEFT JOIN admins a ON t.customer_id = a.id 
-                  WHERE t.status = 'pending' 
-                  ORDER BY t.id DESC LIMIT 5";
+    // Fetch pending customer requests only (approval queue), with schema compatibility fallbacks.
+    if ($trips_has_customer_id) {
+        if ($admins_has_username) {
+            $req_query = "SELECT t.*, COALESCE(NULLIF(a.fullname, ''), NULLIF(a.username, ''), 'External Booking') AS customer_name FROM trips t 
+                          LEFT JOIN admins a ON t.customer_id = a.id 
+                          WHERE t.status = 'pending' AND t.customer_id IS NOT NULL 
+                          ORDER BY t.id DESC LIMIT 5";
+        } else {
+            $req_query = "SELECT t.*, COALESCE(NULLIF(a.fullname, ''), 'External Booking') AS customer_name FROM trips t 
+                          LEFT JOIN admins a ON t.customer_id = a.id 
+                          WHERE t.status = 'pending' AND t.customer_id IS NOT NULL 
+                          ORDER BY t.id DESC LIMIT 5";
+        }
+    } else {
+        // Legacy schema fallback: customer_id not available, keep previous pending behavior.
+        $req_query = "SELECT t.*, 'External Booking' AS customer_name FROM trips t 
+                      WHERE t.status = 'pending' 
+                      ORDER BY t.id DESC LIMIT 5";
+    }
+
     if ($req_res = mysqli_query($conn, $req_query)) {
         while ($row = mysqli_fetch_assoc($req_res)) {
             $pending_requests[] = $row;
@@ -143,8 +171,9 @@ if ($db_connected && $conn) {
             if ($t['status'] === 'pending') {
                 $c_name = 'Customer Account';
                 if (isset($t['customer_id'])) {
-                    if ($t['customer_id'] == 4) {
-                        $c_name = 'Acme Corp Customer';
+                    $mock_customer = get_mock_account_by_id($t['customer_id']);
+                    if ($mock_customer && !empty($mock_customer['fullname'])) {
+                        $c_name = $mock_customer['fullname'];
                     }
                 }
                 $pending_requests[] = array_merge($t, ['customer_name' => $c_name]);

@@ -149,6 +149,12 @@ if ($user_role === 'admin') {
                                     <span>My Orders</span>
                                 </a>
                             </li>
+                            <li class="<?php echo $current_page === 'customer_profile.php' ? 'active' : ''; ?>">
+                                <a href="customer_profile.php">
+                                    <i data-lucide="user-circle"></i>
+                                    <span>Profile</span>
+                                </a>
+                            </li>
                             <li class="<?php echo $current_page === 'track.php' ? 'active' : ''; ?>">
                                 <a href="track.php">
                                     <i data-lucide="search"></i>
@@ -169,6 +175,12 @@ if ($user_role === 'admin') {
                             <a href="track.php">
                                 <i data-lucide="search"></i>
                                 <span>Track Delivery</span>
+                            </a>
+                        </li>
+                        <li class="<?php echo $current_page === 'register.php' ? 'active' : ''; ?>">
+                            <a href="register.php">
+                                <i data-lucide="user-plus"></i>
+                                <span>Create Account</span>
                             </a>
                         </li>
                         <li class="nav-divider"></li>

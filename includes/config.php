@@ -281,7 +281,7 @@ function getTrackingHistory($trip_id) {
     
     if ($db_connected && $conn) {
         $history = [];
-        $query = "SELECT * FROM tracking_updates WHERE trip_id = ? ORDER BY updated_at DESC, id DESC";
+        $query = "SELECT *, created_at AS updated_at FROM tracking_updates WHERE trip_id = ? ORDER BY created_at DESC, id DESC";
         if ($stmt = mysqli_prepare($conn, $query)) {
             mysqli_stmt_bind_param($stmt, "i", $trip_id);
             if (mysqli_stmt_execute($stmt)) {
@@ -346,6 +346,7 @@ function getTrackingByCode($trip_code) {
                     mysqli_stmt_close($stmt);
                     
                     $trip_id = intval($trip['id']);
+                    $history = getTrackingHistory($trip_id);
                     $history = getTrackingHistory($trip_id);
                     $latest_status = getLatestTrackingStatus($trip_id);
                     $color = isset($TRACKING_STATUSES[$latest_status]) ? $TRACKING_STATUSES[$latest_status] : 'gray';

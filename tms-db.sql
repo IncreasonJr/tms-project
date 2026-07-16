@@ -17,6 +17,7 @@ DROP TABLE IF EXISTS admins;
 CREATE TABLE admins (
     id INT AUTO_INCREMENT PRIMARY KEY,
     fullname VARCHAR(100) NOT NULL,
+    username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     role ENUM('admin', 'driver', 'customer') NOT NULL DEFAULT 'customer',
@@ -107,10 +108,10 @@ CREATE TABLE tracking_updates (
 
 -- Seed admins
 -- Password bcrypt hash for 'fleet123'
-INSERT INTO admins (id, fullname, email, password, role) VALUES
-(1, 'Admin', 'admin@fleet.com', '$2y$10$alZR2DLVuLoNNYbxrLTXw.asksF5qBw/Q95Ma1obygLMXKj2AnEMq', 'admin'),
-(2, 'Driver', 'driver@fleet.com', '$2y$10$alZR2DLVuLoNNYbxrLTXw.asksF5qBw/Q95Ma1obygLMXKj2AnEMq', 'driver'),
-(3, 'Customer', 'customer@fleet.com', '$2y$10$alZR2DLVuLoNNYbxrLTXw.asksF5qBw/Q95Ma1obygLMXKj2AnEMq', 'customer');
+INSERT INTO admins (id, fullname, username, email, password, role) VALUES
+(1, 'Admin', 'admin', 'admin@fleet.com', '$2y$10$alZR2DLVuLoNNYbxrLTXw.asksF5qBw/Q95Ma1obygLMXKj2AnEMq', 'admin'),
+(2, 'Driver', 'driver', 'driver@fleet.com', '$2y$10$alZR2DLVuLoNNYbxrLTXw.asksF5qBw/Q95Ma1obygLMXKj2AnEMq', 'driver'),
+(3, 'Customer', 'customer', 'customer@fleet.com', '$2y$10$alZR2DLVuLoNNYbxrLTXw.asksF5qBw/Q95Ma1obygLMXKj2AnEMq', 'customer');
 
 -- Seed vehicles (Ghana localized)
 INSERT INTO vehicles (id, vehicle_name, license_plate, model, capacity, status) VALUES

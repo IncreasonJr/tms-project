@@ -29,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['request_delivery'])) 
         $trip_date = isset($_POST['trip_date']) ? sanitize_input($_POST['trip_date']) : '';
         $purpose = isset($_POST['purpose']) ? sanitize_input($_POST['purpose']) : '';
         
-        if (empty($origin) || empty($destination) || empty($trip_date) || empty($purpose)) {
-            $error = "All fields are required to request a delivery.";
+        if (empty($origin) || empty($destination) || empty($trip_date)) {
+            $error = "Origin, destination, and dispatch date are required to request a delivery.";
         } else {
             // Generate unique trip code
             $trip_code = 'TRP-' . rand(100000, 999999);
@@ -118,6 +118,12 @@ require_once 'includes/header.php';
 <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.05) 100%); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 16px; padding: 24px; margin-bottom: 2rem;">
     <h2 style="font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem;">Welcome to your Customer Portal, <?php echo htmlspecialchars($user_name, ENT_QUOTES, 'UTF-8'); ?>!</h2>
     <p style="font-size: 0.9rem; color: var(--text-secondary);">Query order dispatches, follow shipment timelines, and monitor routes.</p>
+    <div style="margin-top: 1rem;">
+        <a href="customer_profile.php" class="btn btn-secondary" style="display: inline-flex;">
+            <i data-lucide="user-circle"></i>
+            <span>View Profile</span>
+        </a>
+    </div>
 </div>
 
 <!-- Search / Track Shipment Box -->
@@ -252,8 +258,8 @@ require_once 'includes/header.php';
             </div>
 
             <div class="form-group">
-                <label for="purpose" class="form-label">Cargo & Delivery Instructions *</label>
-                <textarea id="purpose" name="purpose" required rows="3" placeholder="Describe the cargo payload, approximate weight, and special instructions..." class="form-control"></textarea>
+                <label for="purpose" class="form-label">Cargo & Delivery Instructions (Optional)</label>
+                <textarea id="purpose" name="purpose" rows="3" placeholder="Describe the cargo payload, approximate weight, and special instructions..." class="form-control"><?php echo isset($_POST['purpose']) ? htmlspecialchars($_POST['purpose'], ENT_QUOTES, 'UTF-8') : ''; ?></textarea>
             </div>
 
             <button type="submit" class="btn btn-primary" style="justify-content: center; padding: 0.8rem; margin-top: 0.5rem; border-radius: 8px;">

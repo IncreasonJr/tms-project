@@ -60,6 +60,14 @@ if ($_SESSION['user_role'] === 'driver') {
 // 3. Fetch trips from database or fallback to mock simulation list
 $trips = [];
 if ($db_connected && $conn) {
+    $trips_has_customer_id = false;
+    if ($col_res = mysqli_query($conn, "SHOW COLUMNS FROM trips LIKE 'customer_id'")) {
+        $trips_has_customer_id = mysqli_num_rows($col_res) > 0;
+        mysqli_free_result($col_res);
+    }
+
+    $approval_gate_filter = $trips_has_customer_id ? "AND NOT (t.customer_id IS NOT NULL AND t.status = 'pending')" : "";
+
     if ($_SESSION['user_role'] === 'driver') {
         $query = "SELECT t.*, v.vehicle_name, v.license_plate, d.full_name AS driver_name, a.fullname AS creator_name 
                   FROM trips t
@@ -85,6 +93,7 @@ if ($db_connected && $conn) {
                   LEFT JOIN vehicles v ON t.vehicle_id = v.id
                   LEFT JOIN drivers d ON t.driver_id = d.id
                   LEFT JOIN admins a ON t.created_by = a.id
+                  WHERE 1=1 $approval_gate_filter
                   ORDER BY t.id DESC";
         $result = mysqli_query($conn, $query);
         if ($result) {
@@ -103,7 +112,13 @@ if ($db_connected && $conn) {
             }
         }
     } else {
-        $trips = get_all_trips();
+        $all_trips = get_all_trips();
+        foreach ($all_trips as $t) {
+            $is_customer_pending = isset($t['customer_id']) && !empty($t['customer_id']) && isset($t['status']) && $t['status'] === 'pending';
+            if (!$is_customer_pending) {
+                $trips[] = $t;
+            }
+        }
     }
 }
 

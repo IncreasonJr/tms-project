@@ -16,6 +16,105 @@ function sanitize_input($data) {
     return $data;
 }
 
+function get_mock_accounts() {
+    if (!isset($_SESSION['mock_user_accounts']) || !is_array($_SESSION['mock_user_accounts'])) {
+        $_SESSION['mock_user_accounts'] = [
+            'admin@fleet.com' => [
+                'id' => 999,
+                'username' => 'admin',
+                'fullname' => 'System Admin',
+                'email' => 'admin@fleet.com',
+                'role' => 'admin',
+                'password' => 'fleet123'
+            ],
+            'dispatcher@fleet.com' => [
+                'id' => 998,
+                'username' => 'dispatcher',
+                'fullname' => 'System Dispatcher',
+                'email' => 'dispatcher@fleet.com',
+                'role' => 'admin',
+                'password' => 'fleet123'
+            ],
+            'driver@fleet.com' => [
+                'id' => 1,
+                'username' => 'driver',
+                'fullname' => 'Kwame Mensah',
+                'email' => 'driver@fleet.com',
+                'role' => 'driver',
+                'password' => 'fleet123'
+            ],
+            'yard@fleet.com' => [
+                'id' => 1,
+                'username' => 'yard',
+                'fullname' => 'Kwame Mensah',
+                'email' => 'yard@fleet.com',
+                'role' => 'driver',
+                'password' => 'fleet123'
+            ],
+            'customer@fleet.com' => [
+                'id' => 1,
+                'username' => 'customer',
+                'fullname' => 'Customer User',
+                'email' => 'customer@fleet.com',
+                'role' => 'customer',
+                'password' => 'fleet123'
+            ]
+        ];
+    }
+
+    return $_SESSION['mock_user_accounts'];
+}
+
+function get_mock_account_by_id($user_id) {
+    $user_id = intval($user_id);
+    foreach (get_mock_accounts() as $account) {
+        if (intval($account['id']) === $user_id) {
+            return $account;
+        }
+    }
+    return null;
+}
+
+function find_mock_account($identifier) {
+    $identifier = strtolower(trim($identifier));
+    foreach (get_mock_accounts() as $account) {
+        $email = strtolower($account['email'] ?? '');
+        $username = strtolower($account['username'] ?? '');
+        if ($identifier === $email || $identifier === $username) {
+            return $account;
+        }
+    }
+    return null;
+}
+
+function create_mock_customer_account($fullname, $username, $email, $password) {
+    $accounts = get_mock_accounts();
+    $username_key = strtolower(trim($username));
+    $email_key = strtolower(trim($email));
+
+    foreach ($accounts as $account) {
+        if (strtolower($account['email']) === $email_key || strtolower($account['username']) === $username_key) {
+            return false;
+        }
+    }
+
+    $next_id = 1;
+    foreach ($accounts as $account) {
+        $next_id = max($next_id, intval($account['id']) + 1);
+    }
+
+    $_SESSION['mock_user_accounts'][$email_key] = [
+        'id' => $next_id,
+        'username' => $username,
+        'fullname' => $fullname,
+        'email' => $email,
+        'role' => 'customer',
+        'password' => password_hash($password, PASSWORD_DEFAULT)
+    ];
+
+    return $_SESSION['mock_user_accounts'][$email_key];
+}
+
 // Check if user is logged in
 function check_login() {
     if (!isset($_SESSION['user_id'])) {
@@ -166,7 +265,6 @@ function insert_trip($trip_code, $trip_date, $origin, $destination, $purpose, $v
     $purpose = sanitize_input($purpose);
     $vehicle_val = $vehicle_id ? intval($vehicle_id) : 'NULL';
     $driver_val = $driver_id ? intval($driver_id) : 'NULL';
-    $created_by = intval($created_by);
     
     if ($db_connected) {
         $sql = "INSERT INTO trips (trip_code, trip_date, origin, destination, purpose, vehicle_id, driver_id, status, created_by) 
@@ -174,13 +272,6 @@ function insert_trip($trip_code, $trip_date, $origin, $destination, $purpose, $v
         
         $success = mysqli_query($conn, $sql);
         if ($success) {
-            // Update vehicle and driver status if assigned
-            if ($vehicle_id) {
-                mysqli_query($conn, "UPDATE vehicles SET status = 'assigned' WHERE id = $vehicle_id");
-            }
-            if ($driver_id) {
-                mysqli_query($conn, "UPDATE drivers SET status = 'on_trip' WHERE id = $driver_id");
-            }
             return true;
         }
         return false;
@@ -198,14 +289,6 @@ function insert_trip($trip_code, $trip_date, $origin, $destination, $purpose, $v
             'status' => 'pending',
             'created_by' => $created_by
         ];
-        
-        // Update vehicle and driver status
-        if ($vehicle_id) {
-            $_SESSION['mock_vehicles'][$vehicle_id]['status'] = 'assigned';
-        }
-        if ($driver_id) {
-            $_SESSION['mock_drivers'][$driver_id]['status'] = 'on_trip';
-        }
         return true;
     }
 }
@@ -213,47 +296,47 @@ function insert_trip($trip_code, $trip_date, $origin, $destination, $purpose, $v
 // Insert customer trip request
 function insert_customer_trip($trip_code, $trip_date, $origin, $destination, $purpose, $customer_id) {
     global $conn, $db_connected;
-    
+
     $trip_code = sanitize_input($trip_code);
     $trip_date = sanitize_input($trip_date);
     $origin = sanitize_input($origin);
     $destination = sanitize_input($destination);
-    $purpose = sanitize_input($purpose);
+    $purpose = $purpose === null || trim($purpose) === '' ? null : sanitize_input($purpose);
     $customer_id = intval($customer_id);
-    
-    if ($db_connected && $conn) {
+
+    if ($db_connected) {
         $sql = "INSERT INTO trips (trip_code, trip_date, origin, destination, purpose, vehicle_id, driver_id, status, created_by, customer_id) 
                 VALUES (?, ?, ?, ?, ?, NULL, NULL, 'pending', 1, ?)";
         if ($stmt = mysqli_prepare($conn, $sql)) {
-            mysqli_stmt_bind_param($stmt, "sssssi", $trip_code, $trip_date, $origin, $destination, $purpose, $customer_id);
+            mysqli_stmt_bind_param($stmt, 'sssssi', $trip_code, $trip_date, $origin, $destination, $purpose, $customer_id);
             $success = mysqli_stmt_execute($stmt);
             mysqli_stmt_close($stmt);
             return $success;
         }
         return false;
-    } else {
-        $new_id = empty($_SESSION['mock_trips']) ? 1 : max(array_keys($_SESSION['mock_trips'])) + 1;
-        $_SESSION['mock_trips'][$new_id] = [
-            'id' => $new_id,
-            'trip_code' => $trip_code,
-            'trip_date' => $trip_date,
-            'origin' => $origin,
-            'destination' => $destination,
-            'purpose' => $purpose,
-            'vehicle_id' => null,
-            'driver_id' => null,
-            'status' => 'pending',
-            'created_by' => 1,
-            'customer_id' => $customer_id
-        ];
-        return true;
     }
+
+    $new_id = empty($_SESSION['mock_trips']) ? 1 : max(array_keys($_SESSION['mock_trips'])) + 1;
+    $_SESSION['mock_trips'][$new_id] = [
+        'id' => $new_id,
+        'trip_code' => $trip_code,
+        'trip_date' => $trip_date,
+        'origin' => $origin,
+        'destination' => $destination,
+        'purpose' => $purpose,
+        'vehicle_id' => null,
+        'driver_id' => null,
+        'status' => 'pending',
+        'created_by' => 1,
+        'customer_id' => $customer_id
+    ];
+    return true;
 }
 
-
-// Update trip status and details
+// Update trip
 function update_trip($id, $trip_date, $origin, $destination, $purpose, $vehicle_id, $driver_id, $status) {
     global $conn, $db_connected;
+
     $id = intval($id);
     $trip_date = sanitize_input($trip_date);
     $origin = sanitize_input($origin);
@@ -262,11 +345,10 @@ function update_trip($id, $trip_date, $origin, $destination, $purpose, $vehicle_
     $status = sanitize_input($status);
     $vehicle_val = $vehicle_id ? intval($vehicle_id) : 'NULL';
     $driver_val = $driver_id ? intval($driver_id) : 'NULL';
-    
-    // Get old trip for status updates logic
+
     $old_trip = get_trip_by_id($id);
     if (!$old_trip) return false;
-    
+
     if ($db_connected) {
         $sql = "UPDATE trips SET 
                 trip_date = '$trip_date', 
@@ -277,18 +359,16 @@ function update_trip($id, $trip_date, $origin, $destination, $purpose, $vehicle_
                 driver_id = $driver_val, 
                 status = '$status' 
                 WHERE id = $id";
-        
+
         $success = mysqli_query($conn, $sql);
         if ($success) {
-            // Revert old vehicle/driver status if changed or completed/cancelled
             if ($old_trip['vehicle_id'] && $old_trip['vehicle_id'] != $vehicle_id) {
                 mysqli_query($conn, "UPDATE vehicles SET status = 'available' WHERE id = " . $old_trip['vehicle_id']);
             }
             if ($old_trip['driver_id'] && $old_trip['driver_id'] != $driver_id) {
                 mysqli_query($conn, "UPDATE drivers SET status = 'available' WHERE id = " . $old_trip['driver_id']);
             }
-            
-            // Set new statuses based on trip status
+
             if ($status == 'completed' || $status == 'cancelled') {
                 if ($vehicle_id) mysqli_query($conn, "UPDATE vehicles SET status = 'available' WHERE id = $vehicle_id");
                 if ($driver_id) mysqli_query($conn, "UPDATE drivers SET status = 'available' WHERE id = $driver_id");
@@ -299,40 +379,38 @@ function update_trip($id, $trip_date, $origin, $destination, $purpose, $vehicle_
             return true;
         }
         return false;
-    } else {
-        // Revert old statuses
-        $old_v = $old_trip['vehicle_id'];
-        $old_d = $old_trip['driver_id'];
-        if ($old_v && $old_v != $vehicle_id) {
-            $_SESSION['mock_vehicles'][$old_v]['status'] = 'available';
-        }
-        if ($old_d && $old_d != $driver_id) {
-            $_SESSION['mock_drivers'][$old_d]['status'] = 'available';
-        }
-        
-        $_SESSION['mock_trips'][$id] = [
-            'id' => $id,
-            'trip_code' => $old_trip['trip_code'],
-            'trip_date' => $trip_date,
-            'origin' => $origin,
-            'destination' => $destination,
-            'purpose' => $purpose,
-            'vehicle_id' => $vehicle_id ? intval($vehicle_id) : null,
-            'driver_id' => $driver_id ? intval($driver_id) : null,
-            'status' => $status,
-            'created_by' => $old_trip['created_by']
-        ];
-        
-        // Update vehicle and driver status based on new trip status
-        if ($status == 'completed' || $status == 'cancelled') {
-            if ($vehicle_id) $_SESSION['mock_vehicles'][$vehicle_id]['status'] = 'available';
-            if ($driver_id) $_SESSION['mock_drivers'][$driver_id]['status'] = 'available';
-        } else {
-            if ($vehicle_id) $_SESSION['mock_vehicles'][$vehicle_id]['status'] = 'assigned';
-            if ($driver_id) $_SESSION['mock_drivers'][$driver_id]['status'] = 'on_trip';
-        }
-        return true;
     }
+
+    $old_v = $old_trip['vehicle_id'];
+    $old_d = $old_trip['driver_id'];
+    if ($old_v && $old_v != $vehicle_id) {
+        $_SESSION['mock_vehicles'][$old_v]['status'] = 'available';
+    }
+    if ($old_d && $old_d != $driver_id) {
+        $_SESSION['mock_drivers'][$old_d]['status'] = 'available';
+    }
+
+    $_SESSION['mock_trips'][$id] = [
+        'id' => $id,
+        'trip_code' => $old_trip['trip_code'],
+        'trip_date' => $trip_date,
+        'origin' => $origin,
+        'destination' => $destination,
+        'purpose' => $purpose,
+        'vehicle_id' => $vehicle_id ? intval($vehicle_id) : null,
+        'driver_id' => $driver_id ? intval($driver_id) : null,
+        'status' => $status,
+        'created_by' => $old_trip['created_by']
+    ];
+
+    if ($status == 'completed' || $status == 'cancelled') {
+        if ($vehicle_id) $_SESSION['mock_vehicles'][$vehicle_id]['status'] = 'available';
+        if ($driver_id) $_SESSION['mock_drivers'][$driver_id]['status'] = 'available';
+    } else {
+        if ($vehicle_id) $_SESSION['mock_vehicles'][$vehicle_id]['status'] = 'assigned';
+        if ($driver_id) $_SESSION['mock_drivers'][$driver_id]['status'] = 'on_trip';
+    }
+    return true;
 }
 
 // Delete / Cancel trip

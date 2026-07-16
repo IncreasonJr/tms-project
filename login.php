@@ -6,6 +6,7 @@
 
 // 1. Include config file
 require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/functions.php';
 
 // Redirect if already logged in
 if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])) {
@@ -35,49 +36,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error_msg = "Security token validation failed. Please try again.";
     } else {
         // Sanitize inputs
-        $email = isset($_POST['email']) ? trim($_POST['email']) : '';
+        $login_identifier = isset($_POST['login_identifier']) ? trim($_POST['login_identifier']) : '';
         $password = isset($_POST['password']) ? $_POST['password'] : '';
 
-        if (empty($email) || empty($password)) {
-            $error_msg = 'Please enter both email and password.';
+        if (empty($login_identifier) || empty($password)) {
+            $error_msg = 'Please enter both username/email and password.';
         } else {
-            if (!$db_connected) {
+            if (!$db_connected || !$conn) {
                 // Allow fallback mock logins in Simulation Mode
-                $mock_users = [
-                    'admin@fleet.com' => [
-                        'id' => 999,
-                        'fullname' => 'System Admin',
-                        'role' => 'admin',
-                        'password' => 'fleet123'
-                    ],
-                    'dispatcher@fleet.com' => [
-                        'id' => 998,
-                        'fullname' => 'System Dispatcher',
-                        'role' => 'admin',
-                        'password' => 'fleet123'
-                    ],
-                    'driver@fleet.com' => [
-                        'id' => 1,
-                        'fullname' => 'Kwame Mensah',
-                        'role' => 'driver',
-                        'password' => 'fleet123'
-                    ],
-                    'yard@fleet.com' => [
-                        'id' => 1,
-                        'fullname' => 'Kwame Mensah',
-                        'role' => 'driver',
-                        'password' => 'fleet123'
-                    ],
-                    'customer@fleet.com' => [
-                        'id' => 1,
-                        'fullname' => 'Customer User',
-                        'role' => 'customer',
-                        'password' => 'fleet123'
-                    ]
-                ];
+                $user = find_mock_account($login_identifier);
+                $mock_password = isset($user['password']) ? $user['password'] : '';
+                $mock_password_ok = false;
+                if ($user) {
+                    // Support both legacy plain-text mock passwords and newer hashed mock passwords.
+                    $mock_password_ok = ($password === $mock_password) || password_verify($password, $mock_password);
+                }
 
-                if (isset($mock_users[$email]) && $password === $mock_users[$email]['password']) {
-                    $user = $mock_users[$email];
+                if ($user && $mock_password_ok) {
                     session_regenerate_id(true);
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['username'] = $user['fullname'];
@@ -105,19 +80,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             } else {
                 // Prepared statements for SQL Injection Protection
-                $sql = "SELECT id, fullname, email, password, role FROM admins WHERE email = ? LIMIT 1";
+                $has_username_column = false;
+                $col_check_sql = "SHOW COLUMNS FROM admins LIKE 'username'";
+                if ($col_check_res = mysqli_query($conn, $col_check_sql)) {
+                    $has_username_column = mysqli_num_rows($col_check_res) > 0;
+                    mysqli_free_result($col_check_res);
+                }
+
+                if ($has_username_column) {
+                    $sql = "SELECT id, fullname, username, email, password, role FROM admins WHERE email = ? OR username = ? LIMIT 1";
+                } else {
+                    // Backward-compatible query for legacy schemas without `username`.
+                    $sql = "SELECT id, fullname, email, password, role FROM admins WHERE email = ? LIMIT 1";
+                }
+
                 if ($stmt = mysqli_prepare($conn, $sql)) {
-                    mysqli_stmt_bind_param($stmt, "s", $email);
+                    if ($has_username_column) {
+                        mysqli_stmt_bind_param($stmt, "ss", $login_identifier, $login_identifier);
+                    } else {
+                        mysqli_stmt_bind_param($stmt, "s", $login_identifier);
+                    }
+
                     if (mysqli_stmt_execute($stmt)) {
                         $result = mysqli_stmt_get_result($stmt);
                         if ($row = mysqli_fetch_assoc($result)) {
-                            if (password_verify($password, $row['password'])) {
+                            $stored_password = isset($row['password']) ? $row['password'] : '';
+                            $password_ok = ($password === $stored_password) || password_verify($password, $stored_password);
+                            if ($password_ok) {
                                 // Regenerate Session ID to prevent session fixation attacks
                                 session_regenerate_id(true);
                                 
                                 $_SESSION['user_id'] = $row['id'];
                                 $_SESSION['username'] = $row['fullname']; // compatibility with backend-core
                                 $_SESSION['user_name'] = $row['fullname']; // compatibility with frontend-trips
+                                $_SESSION['login_identifier'] = isset($row['username']) && !empty($row['username']) ? $row['username'] : $row['email'];
                                 $_SESSION['user_role'] = $row['role'];
                                 $_SESSION['last_activity'] = time(); // Initialize activity timestamp
                                 
@@ -157,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     mysqli_stmt_close($stmt);
                 }
-                $error_msg = 'Invalid email or password.';
+                $error_msg = 'Invalid username/email or password.';
             }
         }
     }
@@ -217,8 +213,8 @@ $token = generateCSRFToken();
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($token, ENT_QUOTES, 'UTF-8'); ?>">
 
             <div class="form-group">
-                <label for="email" class="form-label">Work Email</label>
-                <input type="email" id="email" name="email" required placeholder="you@fleet.com" class="form-control" value="admin@fleet.com">
+                <label for="login_identifier" class="form-label">Username or Email</label>
+                <input type="text" id="login_identifier" name="login_identifier" required placeholder="your username or email" class="form-control" value="admin@fleet.com">
             </div>
 
             <div class="form-group">
@@ -231,6 +227,11 @@ $token = generateCSRFToken();
                 <i data-lucide="arrow-right"></i>
             </button>
         </form>
+
+        <div style="margin-top: 1rem; text-align: center; font-size: 0.85rem; color: var(--text-secondary);">
+            <span>New customer?</span>
+            <a href="register.php" style="color: #60a5fa; font-weight: 700; text-decoration: none; margin-left: 0.25rem;">Create an account</a>
+        </div>
     </div>
 
     <script>
