@@ -18,30 +18,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// 2. Session Inactivity Timeout (30 minutes)
-$timeout_duration = 1800; // 30 minutes in seconds
-if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $timeout_duration)) {
-    // Session expired: unset, delete cookies, and destroy
-    $_SESSION = array();
-    if (ini_get("session.use_cookies")) {
-        $params = session_get_cookie_params();
-        setcookie(
-            session_name(), 
-            '', 
-            time() - 42000,
-            $params["path"], 
-            $params["domain"],
-            $params["secure"], 
-            $params["httponly"]
-        );
-    }
-    session_destroy();
-    header("Location: login.php?timeout=1");
-    exit();
-}
-// Update last activity timestamp
-$_SESSION['last_activity'] = time();
-
 // 3. Load Database Credentials from root .env file if it exists
 $db_server = 'localhost';
 $db_username = 'root';
@@ -104,6 +80,40 @@ try {
 } catch (Throwable $e) {
     $db_connected = false;
 }
+
+// 2. Session Inactivity Timeout (30 minutes)
+$timeout_duration = 1800; // 30 minutes in seconds
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $timeout_duration)) {
+    // Session expired: clear authentication variables
+    $auth_keys = ['user_id', 'username', 'user_name', 'user_role', 'login_identifier', 'driver_id', 'last_activity'];
+    foreach ($auth_keys as $key) {
+        if (isset($_SESSION[$key])) {
+            unset($_SESSION[$key]);
+        }
+    }
+    
+    // Clear cookies and destroy session ONLY if DB is connected
+    if ($db_connected) {
+        $_SESSION = array();
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(
+                session_name(), 
+                '', 
+                time() - 42000,
+                $params["path"], 
+                $params["domain"],
+                $params["secure"], 
+                $params["httponly"]
+            );
+        }
+        session_destroy();
+    }
+    header("Location: login.php?timeout=1");
+    exit();
+}
+// Update last activity timestamp
+$_SESSION['last_activity'] = time();
 
 // 5. Initialize Simulation Mock Database if DB connection is offline
 if (!$db_connected) {
