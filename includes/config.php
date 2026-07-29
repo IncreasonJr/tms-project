@@ -15,6 +15,18 @@ $is_secure = !$is_localhost && ((isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] 
              || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https'));
 ini_set('session.cookie_secure', $is_secure ? 1 : 0);
 
+// Fallback session save path if the default path is not writable
+$default_session_path = session_save_path();
+if (empty($default_session_path) || !is_writable($default_session_path)) {
+    $temp_session_dir = sys_get_temp_dir() . '/tms_sessions';
+    if (!is_dir($temp_session_dir)) {
+        @mkdir($temp_session_dir, 0777, true);
+    }
+    if (is_writable($temp_session_dir)) {
+        session_save_path($temp_session_dir);
+    }
+}
+
 // Start PHP Session if it doesn't already exist
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
