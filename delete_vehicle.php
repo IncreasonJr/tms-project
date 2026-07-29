@@ -6,6 +6,7 @@
 
 // 1. Include the configuration file at the top
 require_once 'includes/config.php';
+require_once 'includes/functions.php';
 
 // 2. Check if the user is logged in (if not, redirect to login.php)
 if (!isset($_SESSION['user_id'])) {
