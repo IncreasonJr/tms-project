@@ -40,38 +40,83 @@ if (isset($_POST['edit_driver'])) {
         $error = "Security token validation failed. Please try again.";
     } else {
         // Validate and sanitize inputs
-        $full_name = isset($_POST['full_name']) ? trim($_POST['full_name']) : '';
-        $license_number = isset($_POST['license_number']) ? trim($_POST['license_number']) : '';
-        $phone = isset($_POST['phone']) ? trim($_POST['phone']) : '';
-        $email = isset($_POST['email']) ? trim($_POST['email']) : '';
-        $address = isset($_POST['address']) ? trim($_POST['address']) : '';
-        $status = isset($_POST['status']) ? trim($_POST['status']) : 'available';
+        $full_name = isset($_POST['full_name']) ? sanitize_input(trim($_POST['full_name'])) : '';
+        $license_number = isset($_POST['license_number']) ? sanitize_input(trim($_POST['license_number'])) : '';
+        $phone = isset($_POST['phone']) ? sanitize_input(trim($_POST['phone'])) : '';
+        $email = isset($_POST['email']) ? sanitize_input(trim($_POST['email'])) : '';
+        $address = isset($_POST['address']) ? sanitize_input(trim($_POST['address'])) : '';
+        $status = isset($_POST['status']) ? sanitize_input(trim($_POST['status'])) : 'available';
 
         if (empty($full_name) || empty($license_number)) {
             $error = "Full Name and License Number are required fields.";
         } elseif (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error = "Please enter a valid email address format.";
         } else {
-            // Update the driver in the drivers table using prepared statements
-            $update_query = "UPDATE drivers SET full_name = ?, license_number = ?, phone = ?, email = ?, address = ?, status = ? WHERE id = ?";
-            
-            if ($stmt = mysqli_prepare($conn, $update_query)) {
-                // Bind parameters
-                mysqli_stmt_bind_param($stmt, "ssssssi", $full_name, $license_number, $phone, $email, $address, $status, $id);
+            if ($db_connected && $conn) {
+                // Update the driver in the drivers table using prepared statements
+                $update_query = "UPDATE drivers SET full_name = ?, license_number = ?, phone = ?, email = ?, address = ?, status = ? WHERE id = ?";
                 
-                // Execute update
-                if (mysqli_stmt_execute($stmt)) {
-                    $success = "Driver updated successfully!";
-                    // Redirect to drivers.php on success
-                    header("Refresh: 1; url=drivers.php");
+                if ($stmt = mysqli_prepare($conn, $update_query)) {
+                    // Bind parameters
+                    mysqli_stmt_bind_param($stmt, "ssssssi", $full_name, $license_number, $phone, $email, $address, $status, $id);
+                    
+                    // Execute update
+                    if (mysqli_stmt_execute($stmt)) {
+                        $success = "Driver updated successfully!";
+                        header("Refresh: 1; url=drivers.php");
+                    } else {
+                        $error = "Error updating driver. The license number might already be registered by another driver.";
+                    }
+                    mysqli_stmt_close($stmt);
                 } else {
-                    $error = "Error updating driver. The license number might already be registered by another driver.";
+                    $error = "Database preparation error. Please try again.";
                 }
-                
-                // Close statement
-                mysqli_stmt_close($stmt);
             } else {
-                $error = "Database preparation error. Please try again.";
+                // Simulation Mode update
+                $exists = false;
+                if (isset($_SESSION['mock_drivers'])) {
+                    foreach ($_SESSION['mock_drivers'] as $did => $drv) {
+                        if ($drv['license_number'] === $license_number && intval($did) !== $id) {
+                            $exists = true;
+                            break;
+                        }
+                    }
+                }
+                if ($exists) {
+                    $error = "Error updating driver. The license number might already be registered by another driver.";
+                } else {
+                    if (isset($_SESSION['mock_drivers'][$id])) {
+                        $_SESSION['mock_drivers'][$id]['fullname'] = $full_name;
+                        $_SESSION['mock_drivers'][$id]['license_number'] = $license_number;
+                        $_SESSION['mock_drivers'][$id]['phone'] = $phone;
+                        $_SESSION['mock_drivers'][$id]['email'] = $email;
+                        $_SESSION['mock_drivers'][$id]['address'] = $address;
+                        $_SESSION['mock_drivers'][$id]['status'] = $status;
+                        
+                        // Sync username/email in mock user accounts if driver email changed or exists
+                        if (!empty($email)) {
+                            // Find the user account associated with this driver's old email or update it
+                            foreach ($_SESSION['mock_user_accounts'] as $em => $acc) {
+                                if ($acc['role'] === 'driver' && intval($acc['id']) === $id) {
+                                    unset($_SESSION['mock_user_accounts'][$em]);
+                                }
+                            }
+                            $_SESSION['mock_user_accounts'][$email] = [
+                                'id' => $id,
+                                'username' => strtolower(explode('@', $email)[0]),
+                                'fullname' => $full_name,
+                                'email' => $email,
+                                'role' => 'driver',
+                                'password' => 'fleet123'
+                            ];
+                        }
+                        
+                        $success = "Driver updated successfully (Simulation Mode)!";
+                        header("Refresh: 1; url=drivers.php");
+                    } else {
+                        $error = "Driver not found in simulation mode.";
+                    }
+                }
             }
         }
     }
@@ -79,20 +124,30 @@ if (isset($_POST['edit_driver'])) {
 
 // 4. Query the database to fetch driver data for the given ID
 $driver = null;
-$fetch_query = "SELECT * FROM drivers WHERE id = ? LIMIT 1";
-
-if ($stmt = mysqli_prepare($conn, $fetch_query)) {
-    // Bind parameter
-    mysqli_stmt_bind_param($stmt, "i", $id);
-    
-    // Execute query
-    if (mysqli_stmt_execute($stmt)) {
-        $fetch_result = mysqli_stmt_get_result($stmt);
-        $driver = mysqli_fetch_assoc($fetch_result);
+if ($db_connected && $conn) {
+    $fetch_query = "SELECT * FROM drivers WHERE id = ? LIMIT 1";
+    if ($stmt = mysqli_prepare($conn, $fetch_query)) {
+        mysqli_stmt_bind_param($stmt, "i", $id);
+        if (mysqli_stmt_execute($stmt)) {
+            $fetch_result = mysqli_stmt_get_result($stmt);
+            $driver = mysqli_fetch_assoc($fetch_result);
+        }
+        mysqli_stmt_close($stmt);
     }
-    
-    // Close statement
-    mysqli_stmt_close($stmt);
+} else {
+    // Simulation Mode fetch
+    if (isset($_SESSION['mock_drivers'][$id])) {
+        $m_d = $_SESSION['mock_drivers'][$id];
+        $driver = [
+            'id' => $m_d['id'],
+            'full_name' => $m_d['fullname'],
+            'license_number' => $m_d['license_number'],
+            'phone' => $m_d['phone'],
+            'email' => $m_d['email'],
+            'address' => $m_d['address'],
+            'status' => $m_d['status']
+        ];
+    }
 }
 
 // 8. If driver not found, redirect to drivers.php

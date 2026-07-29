@@ -31,12 +31,12 @@ if (isset($_POST['add_driver'])) {
         $error = "Security token validation failed. Please try again.";
     } else {
         // Validate and sanitize input fields
-        $full_name = isset($_POST['full_name']) ? trim($_POST['full_name']) : '';
-        $license_number = isset($_POST['license_number']) ? trim($_POST['license_number']) : '';
-        $phone = isset($_POST['phone']) ? trim($_POST['phone']) : '';
-        $email = isset($_POST['email']) ? trim($_POST['email']) : '';
-        $address = isset($_POST['address']) ? trim($_POST['address']) : '';
-        $status = isset($_POST['status']) ? trim($_POST['status']) : 'available';
+        $full_name = isset($_POST['full_name']) ? sanitize_input(trim($_POST['full_name'])) : '';
+        $license_number = isset($_POST['license_number']) ? sanitize_input(trim($_POST['license_number'])) : '';
+        $phone = isset($_POST['phone']) ? sanitize_input(trim($_POST['phone'])) : '';
+        $email = isset($_POST['email']) ? sanitize_input(trim($_POST['email'])) : '';
+        $address = isset($_POST['address']) ? sanitize_input(trim($_POST['address'])) : '';
+        $status = isset($_POST['status']) ? sanitize_input(trim($_POST['status'])) : 'available';
 
         // Validation checks
         if (empty($full_name) || empty($license_number)) {
@@ -44,26 +44,60 @@ if (isset($_POST['add_driver'])) {
         } elseif (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error = "Please enter a valid email address format.";
         } else {
-            // Use mysqli_prepare() prepared statements to prevent SQL injection
-            $query = "INSERT INTO drivers (full_name, license_number, phone, email, address, status) VALUES (?, ?, ?, ?, ?, ?)";
-            
-            if ($stmt = mysqli_prepare($conn, $query)) {
-                // Bind parameters
-                mysqli_stmt_bind_param($stmt, "ssssss", $full_name, $license_number, $phone, $email, $address, $status);
+            if ($db_connected && $conn) {
+                // Use mysqli_prepare() prepared statements to prevent SQL injection
+                $query = "INSERT INTO drivers (full_name, license_number, phone, email, address, status) VALUES (?, ?, ?, ?, ?, ?)";
                 
-                // Execute query
-                if (mysqli_stmt_execute($stmt)) {
-                    $success = "Driver added successfully!";
-                    // Redirect to drivers.php on success (giving 1s for the user to see the success banner)
-                    header("Refresh: 1; url=drivers.php");
+                if ($stmt = mysqli_prepare($conn, $query)) {
+                    // Bind parameters
+                    mysqli_stmt_bind_param($stmt, "ssssss", $full_name, $license_number, $phone, $email, $address, $status);
+                    
+                    // Execute query
+                    if (mysqli_stmt_execute($stmt)) {
+                        $success = "Driver added successfully!";
+                        header("Refresh: 1; url=drivers.php");
+                    } else {
+                        $error = "Error adding driver. The license number may already be registered.";
+                    }
+                    mysqli_stmt_close($stmt);
                 } else {
-                    $error = "Error adding driver. The license number may already be registered.";
+                    $error = "Database preparation error. Please try again.";
                 }
-                
-                // Close statement
-                mysqli_stmt_close($stmt);
             } else {
-                $error = "Database preparation error. Please try again.";
+                // Simulation Mode
+                $exists = false;
+                if (isset($_SESSION['mock_drivers'])) {
+                    foreach ($_SESSION['mock_drivers'] as $drv) {
+                        if ($drv['license_number'] === $license_number) {
+                            $exists = true;
+                            break;
+                        }
+                    }
+                }
+                if ($exists) {
+                    $error = "Error adding driver. The license number may already be registered.";
+                } else {
+                    $new_id = empty($_SESSION['mock_drivers']) ? 1 : max(array_keys($_SESSION['mock_drivers'])) + 1;
+                    $_SESSION['mock_drivers'][$new_id] = [
+                        'id' => $new_id,
+                        'fullname' => $full_name,
+                        'license_number' => $license_number,
+                        'phone' => $phone,
+                        'email' => $email,
+                        'address' => $address,
+                        'status' => $status
+                    ];
+                    
+                    // Add driver account so they can log in
+                    if (!empty($email)) {
+                        create_mock_customer_account($full_name, strtolower(explode('@', $email)[0]), $email, 'fleet123');
+                        $_SESSION['mock_user_accounts'][$email]['role'] = 'driver';
+                        $_SESSION['mock_user_accounts'][$email]['id'] = $new_id;
+                    }
+                    
+                    $success = "Driver added successfully (Simulation Mode)!";
+                    header("Refresh: 1; url=drivers.php");
+                }
             }
         }
     }

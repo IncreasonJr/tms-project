@@ -40,37 +40,63 @@ if (isset($_POST['edit_vehicle'])) {
         $error = "Security token validation failed. Please try again.";
     } else {
         // Validate and sanitize inputs
-        $vehicle_name = isset($_POST['vehicle_name']) ? trim($_POST['vehicle_name']) : '';
-        $license_plate = isset($_POST['license_plate']) ? trim($_POST['license_plate']) : '';
-        $model = isset($_POST['model']) ? trim($_POST['model']) : '';
+        $vehicle_name = isset($_POST['vehicle_name']) ? sanitize_input(trim($_POST['vehicle_name'])) : '';
+        $license_plate = isset($_POST['license_plate']) ? sanitize_input(trim($_POST['license_plate'])) : '';
+        $model = isset($_POST['model']) ? sanitize_input(trim($_POST['model'])) : '';
         $capacity = (isset($_POST['capacity']) && $_POST['capacity'] !== '') ? floatval($_POST['capacity']) : null;
-        $status = isset($_POST['status']) ? trim($_POST['status']) : 'available';
+        $status = isset($_POST['status']) ? sanitize_input(trim($_POST['status'])) : 'available';
 
         if (empty($vehicle_name) || empty($license_plate)) {
             $error = "Vehicle name and license plate are required fields.";
         } elseif ($capacity !== null && $capacity <= 0) {
             $error = "Vehicle capacity must be greater than zero.";
         } else {
-            // Update the vehicle in the vehicles table using prepared statements
-            $update_query = "UPDATE vehicles SET vehicle_name = ?, license_plate = ?, model = ?, capacity = ?, status = ? WHERE id = ?";
-            
-            if ($stmt = mysqli_prepare($conn, $update_query)) {
-                // Bind parameters
-                mysqli_stmt_bind_param($stmt, "sssdsi", $vehicle_name, $license_plate, $model, $capacity, $status, $id);
+            if ($db_connected && $conn) {
+                // Update the vehicle in the vehicles table using prepared statements
+                $update_query = "UPDATE vehicles SET vehicle_name = ?, license_plate = ?, model = ?, capacity = ?, status = ? WHERE id = ?";
                 
-                // Execute update
-                if (mysqli_stmt_execute($stmt)) {
-                    $success = "Vehicle updated successfully!";
-                    // Redirect to vehicles.php on success
-                    header("Refresh: 1; url=vehicles.php");
+                if ($stmt = mysqli_prepare($conn, $update_query)) {
+                    // Bind parameters
+                    mysqli_stmt_bind_param($stmt, "sssdsi", $vehicle_name, $license_plate, $model, $capacity, $status, $id);
+                    
+                    // Execute update
+                    if (mysqli_stmt_execute($stmt)) {
+                        $success = "Vehicle updated successfully!";
+                        header("Refresh: 1; url=vehicles.php");
+                    } else {
+                        $error = "Error updating vehicle. The license plate might already be registered by another vehicle.";
+                    }
+                    mysqli_stmt_close($stmt);
                 } else {
-                    $error = "Error updating vehicle. The license plate might already be registered by another vehicle.";
+                    $error = "Database preparation error. Please try again.";
                 }
-                
-                // Close statement
-                mysqli_stmt_close($stmt);
             } else {
-                $error = "Database preparation error. Please try again.";
+                // Simulation Mode update
+                $exists = false;
+                if (isset($_SESSION['mock_vehicles'])) {
+                    foreach ($_SESSION['mock_vehicles'] as $vid => $veh) {
+                        if ($veh['license_plate'] === $license_plate && intval($vid) !== $id) {
+                            $exists = true;
+                            break;
+                        }
+                    }
+                }
+                if ($exists) {
+                    $error = "Error updating vehicle. The license plate might already be registered by another vehicle.";
+                } else {
+                    if (isset($_SESSION['mock_vehicles'][$id])) {
+                        $_SESSION['mock_vehicles'][$id]['vehicle_name'] = $vehicle_name;
+                        $_SESSION['mock_vehicles'][$id]['license_plate'] = $license_plate;
+                        $_SESSION['mock_vehicles'][$id]['model'] = $model;
+                        $_SESSION['mock_vehicles'][$id]['capacity'] = $capacity;
+                        $_SESSION['mock_vehicles'][$id]['status'] = $status;
+                        
+                        $success = "Vehicle updated successfully (Simulation Mode)!";
+                        header("Refresh: 1; url=vehicles.php");
+                    } else {
+                        $error = "Vehicle not found in simulation mode.";
+                    }
+                }
             }
         }
     }
@@ -78,20 +104,21 @@ if (isset($_POST['edit_vehicle'])) {
 
 // 4. Query the database to fetch vehicle data for the given ID
 $vehicle = null;
-$fetch_query = "SELECT * FROM vehicles WHERE id = ? LIMIT 1";
-
-if ($stmt = mysqli_prepare($conn, $fetch_query)) {
-    // Bind parameter
-    mysqli_stmt_bind_param($stmt, "i", $id);
-    
-    // Execute query
-    if (mysqli_stmt_execute($stmt)) {
-        $fetch_result = mysqli_stmt_get_result($stmt);
-        $vehicle = mysqli_fetch_assoc($fetch_result);
+if ($db_connected && $conn) {
+    $fetch_query = "SELECT * FROM vehicles WHERE id = ? LIMIT 1";
+    if ($stmt = mysqli_prepare($conn, $fetch_query)) {
+        mysqli_stmt_bind_param($stmt, "i", $id);
+        if (mysqli_stmt_execute($stmt)) {
+            $fetch_result = mysqli_stmt_get_result($stmt);
+            $vehicle = mysqli_fetch_assoc($fetch_result);
+        }
+        mysqli_stmt_close($stmt);
     }
-    
-    // Close statement
-    mysqli_stmt_close($stmt);
+} else {
+    // Simulation Mode fetch
+    if (isset($_SESSION['mock_vehicles'][$id])) {
+        $vehicle = $_SESSION['mock_vehicles'][$id];
+    }
 }
 
 // 8. If vehicle not found, redirect to vehicles.php

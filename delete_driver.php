@@ -30,18 +30,29 @@ $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
 
 // 6. Check if driver ID is valid, otherwise skip deletion and redirect
 if ($id > 0) {
-    // Use prepared statement to delete the driver, preventing SQL injection
-    $query = "DELETE FROM drivers WHERE id = ?";
-    
-    if ($stmt = mysqli_prepare($conn, $query)) {
-        // Bind the ID parameter
-        mysqli_stmt_bind_param($stmt, "i", $id);
+    if ($db_connected && $conn) {
+        // Use prepared statement to delete the driver, preventing SQL injection
+        $query = "DELETE FROM drivers WHERE id = ?";
         
-        // Execute the delete query
-        mysqli_stmt_execute($stmt);
-        
-        // Close statement
-        mysqli_stmt_close($stmt);
+        if ($stmt = mysqli_prepare($conn, $query)) {
+            // Bind the ID parameter
+            mysqli_stmt_bind_param($stmt, "i", $id);
+            
+            // Execute the delete query
+            mysqli_stmt_execute($stmt);
+            
+            // Close statement
+            mysqli_stmt_close($stmt);
+        }
+    } else {
+        // Simulation Mode delete
+        if (isset($_SESSION['mock_drivers'][$id])) {
+            $email = $_SESSION['mock_drivers'][$id]['email'] ?? '';
+            unset($_SESSION['mock_drivers'][$id]);
+            if (!empty($email) && isset($_SESSION['mock_user_accounts'][$email])) {
+                unset($_SESSION['mock_user_accounts'][$email]);
+            }
+        }
     }
 }
 

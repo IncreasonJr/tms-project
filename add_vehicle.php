@@ -31,11 +31,11 @@ if (isset($_POST['add_vehicle'])) {
         $error = "Security token validation failed. Please try again.";
     } else {
         // Validate and sanitize input fields
-        $vehicle_name = isset($_POST['vehicle_name']) ? trim($_POST['vehicle_name']) : '';
-        $license_plate = isset($_POST['license_plate']) ? trim($_POST['license_plate']) : '';
-        $model = isset($_POST['model']) ? trim($_POST['model']) : '';
+        $vehicle_name = isset($_POST['vehicle_name']) ? sanitize_input(trim($_POST['vehicle_name'])) : '';
+        $license_plate = isset($_POST['license_plate']) ? sanitize_input(trim($_POST['license_plate'])) : '';
+        $model = isset($_POST['model']) ? sanitize_input(trim($_POST['model'])) : '';
         $capacity = (isset($_POST['capacity']) && $_POST['capacity'] !== '') ? floatval($_POST['capacity']) : null;
-        $status = isset($_POST['status']) ? trim($_POST['status']) : 'available';
+        $status = isset($_POST['status']) ? sanitize_input(trim($_POST['status'])) : 'available';
 
         // Validation checks
         if (empty($vehicle_name) || empty($license_plate)) {
@@ -43,26 +43,51 @@ if (isset($_POST['add_vehicle'])) {
         } elseif ($capacity !== null && $capacity <= 0) {
             $error = "Vehicle capacity must be greater than zero.";
         } else {
-            // Use mysqli_prepare() prepared statements for inserting database records to prevent SQL injection
-            $query = "INSERT INTO vehicles (vehicle_name, license_plate, model, capacity, status) VALUES (?, ?, ?, ?, ?)";
-            
-            if ($stmt = mysqli_prepare($conn, $query)) {
-                // Bind parameters
-                mysqli_stmt_bind_param($stmt, "sssds", $vehicle_name, $license_plate, $model, $capacity, $status);
+            if ($db_connected && $conn) {
+                // Use mysqli_prepare() prepared statements for inserting database records to prevent SQL injection
+                $query = "INSERT INTO vehicles (vehicle_name, license_plate, model, capacity, status) VALUES (?, ?, ?, ?, ?)";
                 
-                // Execute query
-                if (mysqli_stmt_execute($stmt)) {
-                    $success = "Vehicle added successfully!";
-                    // Redirect to vehicles.php on success (giving 1s for the user to see the success banner)
-                    header("Refresh: 1; url=vehicles.php");
+                if ($stmt = mysqli_prepare($conn, $query)) {
+                    // Bind parameters
+                    mysqli_stmt_bind_param($stmt, "sssds", $vehicle_name, $license_plate, $model, $capacity, $status);
+                    
+                    // Execute query
+                    if (mysqli_stmt_execute($stmt)) {
+                        $success = "Vehicle added successfully!";
+                        header("Refresh: 1; url=vehicles.php");
+                    } else {
+                        $error = "Error adding vehicle. The license plate may already be registered.";
+                    }
+                    mysqli_stmt_close($stmt);
                 } else {
-                    $error = "Error adding vehicle. The license plate may already be registered.";
+                    $error = "Database preparation error. Please try again.";
                 }
-                
-                // Close statement
-                mysqli_stmt_close($stmt);
             } else {
-                $error = "Database preparation error. Please try again.";
+                // Simulation Mode
+                $exists = false;
+                if (isset($_SESSION['mock_vehicles'])) {
+                    foreach ($_SESSION['mock_vehicles'] as $veh) {
+                        if ($veh['license_plate'] === $license_plate) {
+                            $exists = true;
+                            break;
+                        }
+                    }
+                }
+                if ($exists) {
+                    $error = "Error adding vehicle. The license plate may already be registered.";
+                } else {
+                    $new_id = empty($_SESSION['mock_vehicles']) ? 1 : max(array_keys($_SESSION['mock_vehicles'])) + 1;
+                    $_SESSION['mock_vehicles'][$new_id] = [
+                        'id' => $new_id,
+                        'vehicle_name' => $vehicle_name,
+                        'license_plate' => $license_plate,
+                        'model' => $model,
+                        'capacity' => $capacity,
+                        'status' => $status
+                    ];
+                    $success = "Vehicle added successfully (Simulation Mode)!";
+                    header("Refresh: 1; url=vehicles.php");
+                }
             }
         }
     }
