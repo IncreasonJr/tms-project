@@ -33,7 +33,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validate CSRF Token
     $csrf_token = isset($_POST['csrf_token']) ? $_POST['csrf_token'] : '';
     if (!validateCSRFToken($csrf_token)) {
-        $error_msg = "Security token validation failed. Please try again.";
+        if (!isset($_SESSION['csrf_token'])) {
+            $error_msg = "Security token validation failed: Your session token is missing. Please check if your browser allows cookies for this site.";
+        } elseif (empty($csrf_token)) {
+            $error_msg = "Security token validation failed: Submitted form token is empty.";
+        } else {
+            $error_msg = "Security token validation failed: Token mismatch. Please reload the page and try again.";
+        }
     } else {
         // Sanitize inputs
         $login_identifier = isset($_POST['login_identifier']) ? trim($_POST['login_identifier']) : '';

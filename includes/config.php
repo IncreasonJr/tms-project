@@ -8,9 +8,11 @@
 ini_set('session.cookie_httponly', 1);
 ini_set('session.cookie_samesite', 'Lax');
 
-// Set cookie_secure if HTTPS is active
-$is_secure = (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] == 1)) 
-             || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+// Set cookie_secure if HTTPS is active and not on localhost
+$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+$is_localhost = (strpos($host, 'localhost') !== false || strpos($host, '127.0.0.1') !== false);
+$is_secure = !$is_localhost && ((isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] == 1)) 
+             || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https'));
 ini_set('session.cookie_secure', $is_secure ? 1 : 0);
 
 // Start PHP Session if it doesn't already exist
