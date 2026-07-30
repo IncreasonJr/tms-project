@@ -95,6 +95,70 @@ try {
     $db_connected = false;
 }
 
+// ==========================================
+// TEMPORARY DATABASE CONNECTION DIAGNOSTIC WIDGET
+// ==========================================
+if (isset($_GET['debug_db'])) {
+    header('Content-Type: text/html; charset=utf-8');
+    echo "<h2>TMS Database Diagnostic Utility</h2>";
+    
+    // 1. Check .env path resolution
+    $env_file_path = __DIR__ . '/../.env';
+    echo "<h3>1. Environment File Check</h3>";
+    echo "Expected .env path: <code>" . htmlspecialchars($env_file_path) . "</code><br>";
+    if (file_exists($env_file_path)) {
+        echo "✅ File exists.<br>";
+        if (is_readable($env_file_path)) {
+            echo "✅ File is readable by Apache.<br>";
+            $lines = @file($env_file_path);
+            echo "Loaded variables: ";
+            foreach ($lines as $line) {
+                if (strpos($line, '=') !== false && strpos($line, '#') !== 0) {
+                    list($k, $v) = explode('=', $line, 2);
+                    echo "<code>" . htmlspecialchars(trim($k)) . "</code> ";
+                }
+            }
+            echo "<br>";
+        } else {
+            echo "❌ ERROR: File exists but is NOT readable by Apache.<br>";
+        }
+    } else {
+        echo "❌ ERROR: .env file does not exist at path.<br>";
+    }
+
+    // 2. Check loaded configuration
+    echo "<h3>2. Loaded Database Configuration</h3>";
+    echo "Host: <code>" . htmlspecialchars(DB_SERVER) . "</code><br>";
+    echo "Username: <code>" . htmlspecialchars(DB_USERNAME) . "</code><br>";
+    echo "Database: <code>" . htmlspecialchars(DB_NAME) . "</code><br>";
+    echo "Password character length: <code>" . strlen(DB_PASSWORD) . "</code><br>";
+    global $db_connected, $conn;
+    echo "Main Connection \$db_connected flag: <strong>" . ($db_connected ? 'true' : 'false') . "</strong><br>";
+    echo "Main Connection \$conn is resource/object: <strong>" . (is_object($conn) || is_resource($conn) ? 'yes' : 'no') . "</strong><br>";
+
+    // 3. Check PHP MySQL Extension availability
+    echo "<h3>3. PHP Environment Check</h3>";
+    if (!function_exists('mysqli_connect')) {
+        echo "❌ ERROR: The <code>php-mysql</code> extension is NOT installed or enabled in Apache!<br>";
+    } else {
+        echo "✅ <code>mysqli</code> extension is active.<br>";
+        
+        // 4. Attempt raw connection and dump error
+        echo "<h3>4. Live MySQL Connection Test</h3>";
+        $test_conn = @mysqli_connect(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
+        if ($test_conn) {
+            echo "🎉 SUCCESS: Connected to MySQL database successfully!<br>";
+            mysqli_close($test_conn);
+        } else {
+            echo "❌ CONNECTION FAILED:<br>";
+            echo "Error Message: <strong>" . htmlspecialchars(mysqli_connect_error()) . "</strong><br>";
+            echo "Error Code: <code>" . mysqli_connect_errno() . "</code><br>";
+        }
+    }
+    exit();
+}
+// ==========================================
+
 // 2. Session Inactivity Timeout (30 minutes)
 $timeout_duration = 1800; // 30 minutes in seconds
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $timeout_duration)) {
